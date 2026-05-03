@@ -1,0 +1,246 @@
+@* ── CollabNest Toast Alert System ──────────────────────────────────────── *@
+@* Drop this inside <body> in _Layout.cshtml, just before </body>           *@
+
+<div id="cn-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+@if (TempData["Success"] != null)
+{
+    <div data-toast="success" data-msg="@TempData["Success"]" style="display:none"></div>
+}
+@if (TempData["Error"] != null)
+{
+    <div data-toast="error" data-msg="@TempData["Error"]" style="display:none"></div>
+}
+@if (TempData["Info"] != null)
+{
+    <div data-toast="info" data-msg="@TempData["Info"]" style="display:none"></div>
+}
+@if (TempData["Warning"] != null)
+{
+    <div data-toast="warning" data-msg="@TempData["Warning"]" style="display:none"></div>
+}
+
+<style>
+    /* ── Container ─────────────────────────────────────────────────────── */
+    #cn-toast-container {
+        position: fixed;
+        top: 72px; /* navbar height + 8px gap */
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+
+    /* ── Toast base ────────────────────────────────────────────────────── */
+    .cn-toast {
+        pointer-events: all;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 420px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(13, 21, 38, 0.72);
+        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        box-shadow:
+            0 8px 32px rgba(0,0,0,0.45),
+            inset 0 1px 0 rgba(255,255,255,0.07);
+        cursor: pointer;
+
+        /* Slide-in from right */
+        animation: cn-slide-in 0.32s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        transform-origin: right center;
+    }
+
+    .cn-toast.cn-hiding {
+        animation: cn-slide-out 0.26s ease-in forwards;
+    }
+
+    /* ── Icon bubble ───────────────────────────────────────────────────── */
+    .cn-toast-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* ── Text block ────────────────────────────────────────────────────── */
+    .cn-toast-body {
+        flex: 1;
+    }
+
+    .cn-toast-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .cn-toast-msg {
+        font-size: 0.87rem;
+        line-height: 1.5;
+        color: #c8d0e7;
+    }
+
+    /* ── Close btn ─────────────────────────────────────────────────────── */
+    .cn-toast-close {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.35);
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        transition: color 0.15s;
+        align-self: flex-start;
+        margin-top: 1px;
+    }
+
+    .cn-toast-close:hover { color: rgba(255,255,255,0.75); }
+
+    /* ── Progress bar ──────────────────────────────────────────────────── */
+    .cn-toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        border-radius: 0 0 14px 14px;
+        animation: cn-progress 4s linear forwards;
+        transform-origin: left;
+    }
+
+    .cn-toast { position: relative; overflow: hidden; }
+
+    /* ── Variant colours ───────────────────────────────────────────────── */
+    /* Success */
+    .cn-toast--success { border-color: rgba(52, 211, 153, 0.25); }
+    .cn-toast--success .cn-toast-icon { background: rgba(52,211,153,0.15); }
+    .cn-toast--success .cn-toast-label { color: #34d399; }
+    .cn-toast--success .cn-toast-progress { background: linear-gradient(90deg,#34d399,#6ee7b7); }
+
+    /* Error */
+    .cn-toast--error { border-color: rgba(248,113,113,0.25); }
+    .cn-toast--error .cn-toast-icon { background: rgba(248,113,113,0.15); }
+    .cn-toast--error .cn-toast-label { color: #f87171; }
+    .cn-toast--error .cn-toast-progress { background: linear-gradient(90deg,#f87171,#fca5a5); }
+
+    /* Info */
+    .cn-toast--info { border-color: rgba(139,125,255,0.25); }
+    .cn-toast--info .cn-toast-icon { background: rgba(139,125,255,0.15); }
+    .cn-toast--info .cn-toast-label { color: #8b7dff; }
+    .cn-toast--info .cn-toast-progress { background: linear-gradient(90deg,#8b7dff,#b8aefd); }
+
+    /* Warning */
+    .cn-toast--warning { border-color: rgba(251,191,36,0.25); }
+    .cn-toast--warning .cn-toast-icon { background: rgba(251,191,36,0.15); }
+    .cn-toast--warning .cn-toast-label { color: #fbbf24; }
+    .cn-toast--warning .cn-toast-progress { background: linear-gradient(90deg,#fbbf24,#fde68a); }
+
+    /* ── Keyframes ─────────────────────────────────────────────────────── */
+    @@keyframes cn-slide-in {
+        from { opacity: 0; transform: translateX(110%) scale(0.92); }
+        to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    @@keyframes cn-slide-out {
+        from { opacity: 1; transform: translateX(0) scale(1); max-height: 120px; }
+        to   { opacity: 0; transform: translateX(110%) scale(0.92); max-height: 0; }
+    }
+
+    @@keyframes cn-progress {
+        from { transform: scaleX(1); }
+        to   { transform: scaleX(0); }
+    }
+
+    /* ── Light theme override ──────────────────────────────────────────── */
+    [data-theme="light"] .cn-toast {
+        background: rgba(255,255,255,0.82);
+        border-color: rgba(0,0,0,0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    [data-theme="light"] .cn-toast-msg { color: #374151; }
+    [data-theme="light"] .cn-toast-close { color: rgba(0,0,0,0.3); }
+    [data-theme="light"] .cn-toast-close:hover { color: rgba(0,0,0,0.6); }
+</style>
+
+<script>
+    (function () {
+        const ICONS = {
+            success: '✓',
+            error: '✕',
+            info: 'ℹ',
+            warning: '⚠'
+        };
+        const LABELS = {
+            success: 'Success',
+            error: 'Error',
+            info: 'Info',
+            warning: 'Warning'
+        };
+
+        function createToast(type, msg) {
+            const container = document.getElementById('cn-toast-container');
+
+            const toast = document.createElement('div');
+            toast.className = `cn-toast cn-toast--${type}`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="cn-toast-icon">${ICONS[type]}</div>
+                <div class="cn-toast-body">
+                    <div class="cn-toast-label">${LABELS[type]}</div>
+                    <div class="cn-toast-msg">${msg}</div>
+                </div>
+                <button class="cn-toast-close" aria-label="Dismiss">&times;</button>
+                <div class="cn-toast-progress"></div>
+            `;
+
+            container.appendChild(toast);
+
+            // Close on click anywhere on toast
+            toast.addEventListener('click', () => dismissToast(toast));
+
+            // Auto-dismiss after 4 s
+            const timer = setTimeout(() => dismissToast(toast), 4000);
+
+            // Pause progress on hover
+            toast.addEventListener('mouseenter', () => {
+                clearTimeout(timer);
+                const bar = toast.querySelector('.cn-toast-progress');
+                if (bar) bar.style.animationPlayState = 'paused';
+            });
+            toast.addEventListener('mouseleave', () => {
+                const bar = toast.querySelector('.cn-toast-progress');
+                if (bar) bar.style.animationPlayState = 'running';
+                setTimeout(() => dismissToast(toast), 2000);
+            });
+        }
+
+        function dismissToast(toast) {
+            if (toast.classList.contains('cn-hiding')) return;
+            toast.classList.add('cn-hiding');
+            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+        }
+
+        // Fire on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-toast]').forEach(el => {
+                createToast(el.dataset.toast, el.dataset.msg);
+                el.remove();
+            });
+        });
+
+        // Expose globally so you can call window.cnToast('info', 'Hello!')
+        window.cnToast = createToast;
+    })();
+</script>

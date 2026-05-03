@@ -1,0 +1,717 @@
+@model CollabNest.Models.Project
+@{
+    ViewData["Title"] = Model.Title;
+    int? currentUserId = ViewBag.CurrentUserId;
+    bool alreadyRequested = ViewBag.AlreadyRequested ?? false;
+    bool isOwner = currentUserId == Model.UserId;
+
+    var allRequests = new System.Collections.Generic.List<CollabNest.Models.CollabRequest>(Model.CollabRequests);
+    var sortedRequests = new System.Collections.Generic.List<CollabNest.Models.CollabRequest>(allRequests);
+    sortedRequests.Sort((a, b) => b.CreatedAt.CompareTo(a.CreatedAt));
+
+    int acceptedCount = 0;
+    int pendingCount = 0;
+    foreach (var r in allRequests)
+    {
+        if (r.Status == "Accepted") acceptedCount++;
+        if (r.Status == "Pending") pendingCount++;
+    }
+
+    string ownerFirstSkill = "";
+    if (Model.Owner?.Skills != null)
+    {
+        var parts = Model.Owner.Skills.Split(',');
+        if (parts.Length > 0) ownerFirstSkill = parts[0].Trim();
+    }
+
+    string ownerInitial = (Model.Owner?.Name?.Length > 0) ? Model.Owner.Name[0].ToString().ToUpper() : "?";
+}
+
+<style>
+    .details-hero {
+        background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 2.5rem 0 0;
+        margin-bottom: 2rem;
+    }
+
+    .hero-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+    }
+
+    .project-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--accent-dim);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.25);
+        border-radius: 100px;
+        padding: 4px 14px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    .hero-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-meta {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        padding-bottom: 1.5rem;
+    }
+
+    .hero-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+    }
+
+    .hero-meta-item i { color: var(--accent); font-size: 0.8rem; }
+
+    .hero-tabs {
+        display: flex;
+        gap: 0;
+        border-top: 1px solid var(--border);
+        margin-top: 0.5rem;
+    }
+
+    .hero-tab {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: color 0.2s, border-color 0.2s;
+        text-decoration: none;
+    }
+
+    .hero-tab.active {
+        color: var(--accent-bright);
+        border-bottom-color: var(--accent-bright);
+    }
+
+    /* ── Cards ── */
+    .detail-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+        transition: border-color 0.2s;
+    }
+
+    .detail-card:hover { border-color: var(--border-hover); }
+
+    .card-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Syne', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--accent-bright);
+        margin-bottom: 1rem;
+    }
+
+    .card-section-title i { font-size: 0.85rem; }
+
+    .description-text {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        font-size: 0.97rem;
+        white-space: pre-wrap;
+    }
+
+    /* ── Skills ── */
+    .skill-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--accent-dim);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: 100px;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 3px;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .skill-tag:hover {
+        background: rgba(139,125,255,0.2);
+        border-color: rgba(139,125,255,0.4);
+    }
+
+    /* ── Join Request Form ── */
+    .join-form-wrap {
+        background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(139,125,255,0.06) 100%);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem;
+    }
+
+    .join-form-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+    }
+
+    .join-form-sub {
+        font-size: 0.83rem;
+        color: var(--text-muted);
+        margin-bottom: 1.25rem;
+    }
+
+    .styled-textarea {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: var(--radius-md);
+        color: var(--text-primary) !important;
+        padding: 0.9rem 1rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        resize: vertical;
+        min-height: 110px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .styled-textarea::placeholder { color: var(--text-muted); }
+
+    .styled-textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(139,125,255,0.15);
+    }
+
+    .btn-send {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 0.7rem 1.5rem;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-send:hover { opacity: 0.88; transform: translateY(-2px); }
+    .btn-send:active { transform: translateY(0); }
+
+    /* ── Status alerts ── */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 100px;
+        padding: 10px 18px;
+        font-size: 0.87rem;
+        font-weight: 600;
+    }
+
+    .status-pill.success {
+        background: rgba(34,197,94,0.1);
+        color: var(--success);
+        border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    .status-pill.info {
+        background: rgba(139,125,255,0.1);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+    }
+
+    /* ── Requests list ── */
+    .request-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+
+    .request-card:hover { border-color: var(--border-hover); }
+
+    .req-avatar {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .req-name {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .req-name:hover { color: var(--accent-bright); }
+
+    .req-date { font-size: 0.76rem; color: var(--text-muted); }
+
+    .req-message {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 0.6rem 0 0;
+        padding: 0.6rem 0.85rem;
+        background: var(--bg-card);
+        border-left: 3px solid rgba(139,125,255,0.3);
+        border-radius: 0 6px 6px 0;
+    }
+
+    .status-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 100px;
+    }
+
+    .badge-pending  { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+    .badge-accepted { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+    .badge-rejected { background: rgba(244,63,94,0.12);  color: #f43f5e; border: 1px solid rgba(244,63,94,0.25); }
+
+    .btn-accept {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(34,197,94,0.12); color: #22c55e;
+        border: 1px solid rgba(34,197,94,0.3);
+        border-radius: var(--radius-sm); padding: 5px 14px;
+        font-size: 0.8rem; font-weight: 700; cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-accept:hover { background: rgba(34,197,94,0.22); }
+
+    .btn-reject {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(244,63,94,0.1); color: #f43f5e;
+        border: 1px solid rgba(244,63,94,0.25);
+        border-radius: var(--radius-sm); padding: 5px 14px;
+        font-size: 0.8rem; font-weight: 700; cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-reject:hover { background: rgba(244,63,94,0.2); }
+
+    /* ── Sidebar ── */
+    .sidebar-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.4rem;
+        margin-bottom: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .sidebar-card:hover { border-color: var(--border-hover); }
+
+    .owner-avatar {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-weight: 800; font-size: 1.3rem; color: #fff;
+        flex-shrink: 0;
+        box-shadow: 0 4px 16px rgba(139,125,255,0.35);
+    }
+
+    .owner-name {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700; font-size: 0.97rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .owner-name:hover { color: var(--accent-bright); }
+
+    .stat-box {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        text-align: center;
+        flex: 1;
+    }
+
+    .stat-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+
+    .stat-label { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
+
+    .btn-back {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-secondary);
+        padding: 0.7rem;
+        font-size: 0.87rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .btn-back:hover {
+        background: var(--bg-elevated);
+        border-color: var(--border-hover);
+        color: var(--text-primary);
+    }
+
+    .btn-delete {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(244,63,94,0.1);
+        color: #f43f5e;
+        border: 1px solid rgba(244,63,94,0.25);
+        border-radius: var(--radius-sm);
+        padding: 7px 14px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-delete:hover { background: rgba(244,63,94,0.2); }
+
+    .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 1.25rem 0;
+    }
+
+    .empty-requests {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+    }
+
+    .empty-requests i { font-size: 2rem; margin-bottom: 0.75rem; display: block; opacity: 0.4; }
+
+    @@media (max-width: 768px) {
+        .hero-title { font-size: 1.5rem; }
+        .hero-meta { gap: 1rem; }
+    }
+</style>
+
+<!-- ── Hero Banner ── -->
+<div class="details-hero">
+    <div class="hero-inner">
+        <div class="project-type-badge">
+            <i class="fas fa-code-branch"></i> CollabNest Project
+        </div>
+
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <h1 class="hero-title">@Model.Title</h1>
+            @if (isOwner)
+            {
+                <form asp-action="Delete" asp-controller="Project" method="post"
+                      onsubmit="return confirm('Are you sure you want to delete this project?')">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn-delete">
+                        <i class="fas fa-trash-alt"></i> Delete Project
+                    </button>
+                </form>
+            }
+        </div>
+
+        <div class="hero-meta">
+            <span class="hero-meta-item">
+                <i class="fas fa-clock"></i>
+                Posted @Model.CreatedAt.ToString("MMMM dd, yyyy")
+            </span>
+            <span class="hero-meta-item">
+                <i class="fas fa-user-tie"></i>
+                by @Model.Owner?.Name
+            </span>
+            <span class="hero-meta-item">
+                <i class="fas fa-users"></i>
+                @allRequests.Count requests · @acceptedCount accepted
+            </span>
+        </div>
+
+        <div class="hero-tabs">
+            <span class="hero-tab active"><i class="fas fa-info-circle me-1"></i>Overview</span>
+            @if (isOwner && allRequests.Count > 0)
+            {
+                <span class="hero-tab"><i class="fas fa-envelope me-1"></i>Requests (@allRequests.Count)</span>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ── Main Layout ── -->
+<div class="container" style="max-width:1100px; padding-bottom:3rem;">
+    <div class="row g-4">
+
+        <!-- LEFT: Main Content -->
+        <div class="col-lg-8">
+
+            <!-- Description Card -->
+            <div class="detail-card">
+                <div style="padding:1.5rem 1.75rem">
+                    <div class="card-section-title">
+                        <i class="fas fa-align-left"></i> Description
+                    </div>
+                    <p class="description-text">@Model.Description</p>
+                </div>
+            </div>
+
+            <!-- Skills Card -->
+            @if (!string.IsNullOrEmpty(Model.RequiredSkills))
+            {
+                <div class="detail-card">
+                    <div style="padding:1.5rem 1.75rem">
+                        <div class="card-section-title">
+                            <i class="fas fa-tags"></i> Required Skills
+                        </div>
+                        <div>
+                            @foreach (var s in Model.RequiredSkills.Split(','))
+                            {
+                                <span class="skill-tag">
+                                    <i class="fas fa-check" style="font-size:0.65rem"></i>
+                                    @s.Trim()
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Join Request Section -->
+            <div class="detail-card">
+                <div style="padding:1.5rem 1.75rem">
+                    <div class="card-section-title">
+                        <i class="fas fa-paper-plane"></i> Join This Project
+                    </div>
+
+                    @if (currentUserId == null)
+                    {
+                        <div class="status-pill info">
+                            <i class="fas fa-lock"></i>
+                            <span><a href="/Account/Login" style="color:inherit;font-weight:700;text-decoration:underline;">Sign in</a> to send a join request</span>
+                        </div>
+                    }
+                    else if (isOwner)
+                    {
+                        <div class="status-pill info">
+                            <i class="fas fa-crown"></i>
+                            <span>You are the owner of this project</span>
+                        </div>
+                    }
+                    else if (alreadyRequested)
+                    {
+                        <div class="status-pill success">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Request sent! Waiting for the owner's response.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="join-form-wrap">
+                            <div class="join-form-title"><i class="fas fa-hand-sparkles me-2" style="color:var(--accent-bright)"></i>Introduce Yourself</div>
+                            <div class="join-form-sub">Tell the owner why you'd be a great collaborator for this project.</div>
+                            <form asp-action="SendRequest" asp-controller="Project" method="post">
+                                <input type="hidden" name="ProjectId" value="@Model.Id" />
+                                <textarea name="Message" class="styled-textarea"
+                                    placeholder="Hi! I'm interested in joining because..."></textarea>
+                                <div class="mt-3">
+                                    <button type="submit" class="btn-send">
+                                        <i class="fas fa-paper-plane"></i> Send Request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Requests Panel (Owner only) -->
+            @if (isOwner)
+            {
+                <div class="detail-card">
+                    <div style="padding:1.5rem 1.75rem">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="card-section-title mb-0">
+                                <i class="fas fa-inbox"></i> Join Requests
+                            </div>
+                            @if (pendingCount > 0)
+                            {
+                                <span class="status-badge badge-pending">@pendingCount pending</span>
+                            }
+                        </div>
+
+                        @if (allRequests.Count == 0)
+                        {
+                            <div class="empty-requests">
+                                <i class="fas fa-inbox"></i>
+                                No requests yet. Share your project to get collaborators!
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var req in sortedRequests)
+                            {
+                                string initial = (req.Sender?.Name?.Length > 0) ? req.Sender.Name[0].ToString().ToUpper() : "?";
+                                <div class="request-card">
+                                    <div class="d-flex align-items-center justify-content-between gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="req-avatar">@initial</div>
+                                            <div>
+                                                <a href="/Account/Profile/@req.SenderId" class="req-name">@req.Sender?.Name</a>
+                                                <div class="req-date"><i class="fas fa-clock me-1"></i>@req.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                            </div>
+                                        </div>
+                                        <span class="status-badge @(req.Status == "Accepted" ? "badge-accepted" : req.Status == "Rejected" ? "badge-rejected" : "badge-pending")">
+                                            @req.Status
+                                        </span>
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(req.Message))
+                                    {
+                                        <div class="req-message">@req.Message</div>
+                                    }
+
+                                    @if (req.Status == "Pending")
+                                    {
+                                        <div class="d-flex gap-2 mt-3">
+                                            <form asp-action="UpdateRequest" asp-controller="Project" method="post" class="d-inline">
+                                                <input type="hidden" name="requestId" value="@req.Id" />
+                                                <input type="hidden" name="status" value="Accepted" />
+                                                <button type="submit" class="btn-accept">
+                                                    <i class="fas fa-check"></i> Accept
+                                                </button>
+                                            </form>
+                                            <form asp-action="UpdateRequest" asp-controller="Project" method="post" class="d-inline">
+                                                <input type="hidden" name="requestId" value="@req.Id" />
+                                                <input type="hidden" name="status" value="Rejected" />
+                                                <button type="submit" class="btn-reject">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT: Sidebar -->
+        <div class="col-lg-4">
+
+            <!-- Owner Card -->
+            <div class="sidebar-card">
+                <div class="card-section-title">
+                    <i class="fas fa-user-circle"></i> Posted By
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="owner-avatar">@ownerInitial</div>
+                    <div>
+                        <a href="/Account/Profile/@Model.UserId" class="owner-name d-block">@Model.Owner?.Name</a>
+                        @if (!string.IsNullOrEmpty(ownerFirstSkill))
+                        {
+                            <span style="font-size:0.78rem; color:var(--accent-bright); font-weight:600;">@ownerFirstSkill</span>
+                        }
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Owner?.Bio))
+                {
+                    <div class="section-divider"></div>
+                    <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.6; margin:0;">@Model.Owner.Bio</p>
+                }
+            </div>
+
+            <!-- Stats Card -->
+            <div class="sidebar-card">
+                <div class="card-section-title">
+                    <i class="fas fa-chart-bar"></i> Project Stats
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="stat-box">
+                        <div class="stat-num">@allRequests.Count</div>
+                        <div class="stat-label">Total Requests</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-num" style="color:var(--success)">@acceptedCount</div>
+                        <div class="stat-label">Accepted</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-num" style="color:#fbbf24">@pendingCount</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posted Date -->
+            <div class="sidebar-card">
+                <div class="card-section-title">
+                    <i class="fas fa-calendar-alt"></i> Timeline
+                </div>
+                <div style="font-size:0.87rem; color:var(--text-secondary);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="color:var(--text-muted)">Posted</span>
+                        <span style="font-weight:600;">@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span style="color:var(--text-muted)">Status</span>
+                        <span class="status-badge badge-accepted">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <a href="/" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Projects
+            </a>
+        </div>
+
+    </div>
+</div>

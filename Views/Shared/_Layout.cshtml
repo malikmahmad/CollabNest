@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — CollabNest</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="~/icon.svg" />
+    <link rel="shortcut icon" href="~/icon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+
+        /* ══════════════════════════════════════
+           THEME VARIABLES
+        ══════════════════════════════════════ */
+        :root,
+        [data-theme="dark"] {
+            --bg-base:        #070b18;
+            --bg-surface:     #0d1526;
+            --bg-elevated:    #111c33;
+            --bg-card:        rgba(255,255,255,0.035);
+            --border:         rgba(255,255,255,0.07);
+            --border-hover:   rgba(148,130,255,0.35);
+            --accent:         #8b7dff;
+            --accent-bright:  #b8aefd;
+            --accent-dim:     rgba(139,125,255,0.12);
+            --text-primary:   #eef0f7;
+            --text-secondary: #8a95b0;
+            --text-muted:     #465070;
+            --white:          #ffffff;
+            --danger:         #f43f5e;
+            --success:        #22c55e;
+            --radius-sm:      8px;
+            --radius-md:      12px;
+            --radius-lg:      18px;
+            --radius-xl:      24px;
+            --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+            --shadow-glow:    0 0 40px rgba(139,125,255,0.15);
+            --shadow-card:    0 4px 24px rgba(0,0,0,0.4);
+            --nav-bg:         rgba(7,11,24,0.85);
+            --input-bg:       rgba(255,255,255,0.04);
+            --input-border:   rgba(255,255,255,0.1);
+            --input-text:     #eef0f7;
+        }
+
+        [data-theme="light"] {
+            --bg-base:        #f4f6fc;
+            --bg-surface:     #ffffff;
+            --bg-elevated:    #f0f2fb;
+            --bg-card:        rgba(255,255,255,0.85);
+            --border:         rgba(0,0,0,0.09);
+            --border-hover:   rgba(139,125,255,0.4);
+            --accent:         #6c5ce7;
+            --accent-bright:  #8b7dff;
+            --accent-dim:     rgba(108,92,231,0.10);
+            --text-primary:   #1a1d2e;
+            --text-secondary: #4a5068;
+            --text-muted:     #7a849e;
+            --white:          #1a1d2e;
+            --danger:         #e11d48;
+            --success:        #16a34a;
+            --shadow-glow:    0 0 40px rgba(108,92,231,0.10);
+            --shadow-card:    0 4px 24px rgba(0,0,0,0.08);
+            --nav-bg:         rgba(255,255,255,0.90);
+            --input-bg:       #f8f9ff;
+            --input-border:   rgba(0,0,0,0.12);
+            --input-text:     #1a1d2e;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ══════════════════════════════════════
+           NAVBAR
+        ══════════════════════════════════════ */
+        #mainNav {
+            background: var(--nav-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            transition: background 0.3s;
+        }
+
+        #mainNav .navbar-brand {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        #mainNav .navbar-brand .brand-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .nav-center {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .nav-center .nav-link {
+            color: var(--text-secondary) !important;
+            font-size: 0.83rem;
+            font-weight: 500;
+            padding: 0.4rem 0.65rem !important;
+            white-space: nowrap;
+            border-radius: var(--radius-sm);
+            transition: color 0.2s, background 0.2s;
+            position: relative;
+        }
+
+        .nav-center .nav-link:hover,
+        .nav-center .nav-link.active {
+            color: var(--accent-bright) !important;
+            background: var(--accent-dim);
+        }
+
+        .nav-center .nav-link.nav-home {
+            color: var(--text-primary) !important;
+            font-weight: 600;
+        }
+
+        /* ── nav Login link style ── */
+        .nav-center .nav-link.nav-login {
+            color: var(--text-secondary) !important;
+            font-size: 0.83rem;
+            font-weight: 500;
+        }
+
+        .nav-center .nav-link.nav-login:hover {
+            color: var(--accent-bright) !important;
+            background: var(--accent-dim);
+        }
+
+        /* ══════════════════════════════════════
+           THEME DROPDOWN
+        ══════════════════════════════════════ */
+        .theme-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            padding: 5px 11px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .theme-dropdown-btn:hover {
+            background: var(--accent-dim);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .theme-dropdown-btn i { font-size: 0.78rem; }
+        .theme-dropdown-btn::after { margin-left: 2px; opacity: 0.5; font-size: 0.7rem; }
+
+        .theme-dropdown-menu {
+            min-width: 155px !important;
+            padding: 0.35rem !important;
+        }
+
+        .theme-option {
+            display: flex !important;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            font-size: 0.85rem !important;
+        }
+
+        .theme-option .t-icon {
+            font-size: 0.78rem;
+            width: 15px;
+            text-align: center;
+            color: var(--accent-bright);
+            flex-shrink: 0;
+        }
+
+        .theme-check {
+            margin-left: auto;
+            font-size: 0.68rem;
+            color: var(--accent-bright);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .theme-check.visible { opacity: 1; }
+
+        /* ══════════════════════════════════════
+           USER AVATAR & DROPDOWN
+        ══════════════════════════════════════ */
+        .user-avatar-pro {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.82rem;
+            color: #fff;
+            flex-shrink: 0;
+            border: 2px solid rgba(139,125,255,0.3);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s var(--ease-spring);
+        }
+
+        .user-avatar-pro.lg {
+            width: 42px; height: 42px;
+            font-size: 1.05rem;
+        }
+
+        .user-dropdown-toggle:hover .user-avatar-pro,
+        .user-dropdown-toggle.show .user-avatar-pro {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(139,125,255,0.2);
+            transform: scale(1.05);
+        }
+
+        .user-dropdown-toggle::after { display: none !important; }
+
+        .user-chevron {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .user-dropdown-toggle.show .user-chevron {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown-menu {
+            min-width: 220px !important;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        .user-dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.85rem 0.9rem 0.75rem;
+            background: var(--accent-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-dropdown-header .user-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .user-dropdown-header .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--accent-bright);
+            margin-top: 2px;
+        }
+
+        .user-dropdown-body {
+            padding: 0.35rem;
+        }
+
+        .user-dropdown-menu .dropdown-item {
+            display: flex !important;
+            align-items: center;
+            gap: 9px;
+            border-radius: var(--radius-sm) !important;
+            font-size: 0.85rem !important;
+            padding: 0.55rem 0.75rem !important;
+        }
+
+        .user-dropdown-menu .dropdown-item .di-icon {
+            width: 28px; height: 28px;
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .user-dropdown-menu .dropdown-item .di-icon.purple {
+            background: var(--accent-dim);
+            color: var(--accent-bright);
+        }
+
+        .user-dropdown-menu .dropdown-item .di-icon.green {
+            background: rgba(34,197,94,0.1);
+            color: #22c55e;
+        }
+
+        .user-dropdown-menu .dropdown-item .di-icon.amber {
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+        }
+
+        .user-dropdown-menu .dropdown-item .di-icon.red {
+            background: rgba(244,63,94,0.1);
+            color: var(--danger);
+        }
+
+        .user-dropdown-menu .dropdown-item:hover .di-icon.purple { background: rgba(139,125,255,0.2); }
+        .user-dropdown-menu .dropdown-item:hover .di-icon.green  { background: rgba(34,197,94,0.18); }
+        .user-dropdown-menu .dropdown-item:hover .di-icon.amber  { background: rgba(245,158,11,0.18); }
+        .user-dropdown-menu .dropdown-item:hover .di-icon.red    { background: rgba(244,63,94,0.18); }
+
+        .logout-item { color: var(--danger) !important; }
+        .logout-item:hover { background: rgba(244,63,94,0.08) !important; }
+
+        .user-dropdown-footer {
+            padding: 0.5rem 0.9rem 0.65rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* ══════════════════════════════════════
+           OVERLAY PANEL SYSTEM
+        ══════════════════════════════════════ */
+        .page-panel {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1040;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .page-panel.active { display: block; }
+
+        .panel-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 7, 18, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.35s var(--ease-out);
+        }
+
+        .page-panel.active .panel-backdrop { opacity: 1; }
+
+        .page-panel-inner {
+            position: relative;
+            z-index: 2;
+            background: var(--bg-surface);
+            min-height: 100vh;
+            color: var(--text-primary);
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.4s var(--ease-out), opacity 0.35s ease;
+        }
+
+        .page-panel.active .page-panel-inner {
+            transform: translateY(0);
+            opacity: 1;
+            transition-delay: 0.05s;
+        }
+
+        .panel-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-topbar .brand {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-close {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            width: 36px; height: 36px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+        }
+
+        .panel-close:hover {
+            background: rgba(244,63,94,0.12);
+            border-color: rgba(244,63,94,0.3);
+            color: var(--danger);
+            transform: scale(1.05);
+        }
+
+        /* ══════════════════════════════════════
+           PANEL HERO
+        ══════════════════════════════════════ */
+        .panel-hero {
+            background: linear-gradient(160deg, var(--bg-base) 0%, var(--bg-elevated) 55%, var(--bg-base) 100%);
+            padding: 90px 0 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-hero::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139,125,255,0.14) 0%, transparent 65%);
+            top: -150px; left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .panel-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(139,125,255,0.25);
+            border-radius: 30px;
+            padding: 5px 18px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--accent-bright);
+            margin-bottom: 22px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.12;
+            margin-bottom: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-hero h1 span { color: var(--accent-bright); }
+
+        .panel-hero p {
+            font-size: 1.08rem;
+            color: var(--text-secondary);
+            max-width: 560px;
+            margin: 0 auto;
+            line-height: 1.75;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ══════════════════════════════════════
+           CARDS
+        ══════════════════════════════════════ */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            transition: border-color 0.25s, transform 0.25s var(--ease-out), box-shadow 0.25s;
+            height: 100%;
+        }
+
+        .content-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow), var(--shadow-card);
+        }
+
+        .content-card .icon-wrap {
+            width: 50px; height: 50px;
+            border-radius: var(--radius-md);
+            background: var(--accent-dim);
+            border: 1px solid rgba(139,125,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            color: var(--accent-bright);
+            margin-bottom: 1.1rem;
+            transition: background 0.2s, transform 0.2s var(--ease-spring);
+        }
+
+        .content-card:hover .icon-wrap {
+            background: rgba(139,125,255,0.2);
+            transform: scale(1.08);
+        }
+
+        .content-card h5 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .content-card p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .step-card {
+            display: flex;
+            gap: 1.1rem;
+            align-items: flex-start;
+            padding: 1.4rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.85rem;
+            transition: border-color 0.22s, transform 0.22s var(--ease-out);
+        }
+
+        .step-card:hover {
+            border-color: var(--border-hover);
+            transform: translateX(5px);
+        }
+
+        .step-num {
+            min-width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 0.9rem; color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(139,125,255,0.35);
+        }
+
+        .step-card h6 { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; font-size: 0.95rem; }
+        .step-card p  { font-size: 0.86rem; color: var(--text-muted); margin: 0; line-height: 1.65; }
+
+        /* ══════════════════════════════════════
+           FAQ
+        ══════════════════════════════════════ */
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.65rem;
+            overflow: hidden;
+            transition: border-color 0.22s;
+        }
+
+        .faq-item:hover { border-color: rgba(139,125,255,0.25); }
+
+        .faq-question {
+            width: 100%;
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.93rem;
+            font-weight: 600;
+            padding: 1.1rem 1.35rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: background 0.18s, color 0.18s;
+        }
+
+        .faq-question:hover { background: var(--accent-dim); }
+        .faq-icon { color: var(--accent-bright); font-size: 0.8rem; transition: transform 0.32s var(--ease-out); flex-shrink: 0; }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease-out), padding 0.3s ease;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+            padding: 0 1.35rem;
+            background: var(--bg-surface);
+        }
+
+        .faq-item.open .faq-answer    { max-height: 400px; padding: 0 1.35rem 1.15rem; }
+        .faq-item.open .faq-icon      { transform: rotate(45deg); }
+        .faq-item.open .faq-question  { color: var(--text-primary); background: var(--accent-dim); }
+
+        /* ══════════════════════════════════════
+           TEAM CARD
+        ══════════════════════════════════════ */
+        .team-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: border-color 0.25s, transform 0.25s var(--ease-out), box-shadow 0.25s;
+        }
+
+        .team-card:hover { border-color: var(--border-hover); transform: translateY(-5px); box-shadow: var(--shadow-glow), var(--shadow-card); }
+
+        .team-avatar {
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-size: 2.2rem; font-weight: 800; color: #fff;
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 8px 30px rgba(139,125,255,0.4);
+        }
+
+        /* ══════════════════════════════════════
+           PRIVACY
+        ══════════════════════════════════════ */
+        .privacy-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .privacy-section:hover { border-color: rgba(139,125,255,0.18); }
+        .privacy-section h5 { color: var(--accent-bright); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.97rem; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.55rem; }
+        .privacy-section p, .privacy-section li { font-size: 0.875rem; color: var(--text-muted); line-height: 1.75; }
+        .privacy-section ul { padding-left: 1.2rem; margin: 0.5rem 0 0; }
+        .privacy-section li + li { margin-top: 0.35rem; }
+
+        /* ══════════════════════════════════════
+           BLOG CARDS
+        ══════════════════════════════════════ */
+        .blog-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: border-color 0.25s, transform 0.25s var(--ease-out), box-shadow 0.25s;
+            height: 100%;
+        }
+
+        .blog-card:hover { border-color: var(--border-hover); transform: translateY(-5px); box-shadow: var(--shadow-glow), var(--shadow-card); }
+
+        .blog-card-img {
+            height: 175px;
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-surface));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3.2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .blog-card-body { padding: 1.5rem; }
+
+        .blog-tag {
+            display: inline-block;
+            background: var(--accent-dim);
+            border: 1px solid rgba(139,125,255,0.22);
+            color: var(--accent-bright);
+            font-size: 0.68rem;
+            font-weight: 700;
+            border-radius: 30px;
+            padding: 3px 12px;
+            margin-bottom: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .blog-card-body h5 { font-family: 'Syne', sans-serif; color: var(--text-primary); font-weight: 700; font-size: 0.97rem; margin-bottom: 0.55rem; line-height: 1.4; }
+        .blog-card-body p  { color: var(--text-muted); font-size: 0.85rem; line-height: 1.65; margin: 0; }
+        .blog-meta { font-size: 0.76rem; color: var(--text-muted); margin-top: 1rem; }
+
+        /* ══════════════════════════════════════
+           SECTION HELPERS
+        ══════════════════════════════════════ */
+        .section-label  { font-size: 0.69rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent-bright); margin-bottom: 0.5rem; }
+        .section-title  { font-family: 'Syne', sans-serif; font-size: clamp(1.65rem, 3vw, 2.3rem); font-weight: 800; color: var(--text-primary); line-height: 1.18; margin-bottom: 1rem; }
+        .section-desc   { color: var(--text-muted); font-size: 0.93rem; line-height: 1.75; max-width: 540px; }
+        .purple-divider { height: 3px; width: 44px; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 2px; margin: 0.85rem 0 1.5rem; }
+
+        /* ══════════════════════════════════════
+           BUTTONS
+        ══════════════════════════════════════ */
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.55rem 1.3rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s var(--ease-spring);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-accent:hover { opacity: 0.88; transform: translateY(-1px); color: #fff; }
+
+        .linkedin-btn {
+            background: #0a66c2;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 0.5rem 1.2rem;
+            color: #fff !important;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s, transform 0.15s var(--ease-spring);
+        }
+
+        .linkedin-btn:hover { background: #0856a7; transform: translateY(-1px); }
+
+        /* ══════════════════════════════════════
+           FORMS
+        ══════════════════════════════════════ */
+        .form-control, .form-select {
+            background: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            color: var(--input-text) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 0.7rem 1rem !important;
+            font-size: 0.9rem !important;
+            transition: border-color 0.2s, box-shadow 0.2s !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px var(--accent-dim) !important;
+            background: var(--input-bg) !important;
+            color: var(--input-text) !important;
+        }
+
+        .form-control::placeholder { color: var(--text-muted) !important; }
+        .form-label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+
+        .input-group-text {
+            background: var(--bg-elevated) !important;
+            border: 1px solid var(--input-border) !important;
+            color: var(--accent-bright) !important;
+            border-radius: var(--radius-sm) 0 0 var(--radius-sm) !important;
+        }
+
+        .form-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-card);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ══════════════════════════════════════
+           FOOTER
+        ══════════════════════════════════════ */
+        .footer-pro {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            padding-top: 64px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-brand-name { font-family: 'Syne', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--text-primary); }
+        .footer-tagline    { font-size: 0.9rem; color: var(--text-secondary); }
+        .footer-desc       { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; max-width: 300px; }
+        .footer-author     { font-size: 0.85rem; font-weight: 600; color: var(--accent-bright); }
+        .footer-heading    { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--accent-bright); margin-bottom: 1rem; }
+
+        .footer-links { list-style: none; padding: 0; margin: 0; }
+        .footer-links li { margin-bottom: 0.45rem; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.86rem; transition: color 0.18s, padding-left 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .footer-links a:hover { color: var(--accent-bright); padding-left: 4px; }
+
+        .footer-social-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s var(--ease-spring);
+            margin-right: 4px;
+        }
+
+        .footer-social-icon:hover { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateY(-2px); }
+
+        .footer-divider { border-color: var(--border); margin: 40px 0 0; }
+
+        .footer-bottom {
+            padding: 18px 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom a { color: var(--accent-bright); text-decoration: none; transition: color 0.15s; }
+        .footer-bottom a:hover { color: var(--text-primary); }
+        .footer-bottom-links { display: flex; align-items: center; gap: 20px; }
+
+        .footer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 30px;
+            padding: 4px 14px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 1.1rem;
+        }
+
+        /* ══════════════════════════════════════
+           DROPDOWN MENU (shared)
+        ══════════════════════════════════════ */
+        .dropdown-menu {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            padding: 0.4rem;
+        }
+
+        .dropdown-item { color: var(--text-secondary); font-size: 0.86rem; border-radius: var(--radius-sm); padding: 0.55rem 0.85rem; transition: background 0.15s, color 0.15s; }
+        .dropdown-item:hover { background: var(--accent-dim); color: var(--text-primary); }
+        .dropdown-divider { border-color: var(--border); margin: 0.25rem 0; }
+
+        .alert { font-size: 0.88rem; }
+
+        /* ══════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════ */
+        @@media (max-width: 991px) {
+            .nav-center { flex-wrap: wrap; justify-content: flex-start; }
+            .panel-hero { padding: 60px 0 50px; }
+        }
+
+        @@media (max-width: 576px) {
+            .footer-bottom { flex-direction: column; text-align: center; gap: 8px; }
+            .footer-bottom-links { flex-wrap: wrap; justify-content: center; }
+            .form-card { padding: 1.75rem 1.25rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark" id="mainNav">
+    <div class="container">
+
+        <!-- ── BRAND ── -->
+        <a class="navbar-brand" href="/">
+            <div class="brand-icon"><i class="fas fa-code-branch"></i></div>
+            CollabNest
+        </a>
+
+        <!-- ── MOBILE TOGGLER ── -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+
+            <!-- ══════════════════════════════
+                 CENTER NAV LINKS
+            ══════════════════════════════ -->
+            <ul class="navbar-nav mx-auto align-items-center nav-center">
+
+                <li class="nav-item">
+                    <a class="nav-link nav-home" href="/">
+                        <i class="fas fa-house me-1" style="font-size:0.78rem;"></i>Explore
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('about');return false;">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('howitworks');return false;">How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('features');return false;">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('blog');return false;">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('faq');return false;">FAQ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="openPanel('privacy');return false;">Privacy</a>
+                </li>
+
+            </ul>
+            <!-- END center nav -->
+
+            <!-- ══════════════════════════════
+                 RIGHT SIDE — Theme + Login/Register or Avatar
+            ══════════════════════════════ -->
+            <ul class="navbar-nav ms-auto align-items-center flex-nowrap gap-2">
+
+                <!-- ── THEME DROPDOWN ── -->
+                <li class="nav-item dropdown">
+                    <button class="theme-dropdown-btn dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false" id="themeDropdownBtn">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                        <span id="themeLabel">Dark</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end theme-dropdown-menu">
+                        <li>
+                            <button class="dropdown-item theme-option" onclick="setTheme('dark')">
+                                <i class="fas fa-moon t-icon"></i>
+                                Dark
+                                <i class="fas fa-check theme-check" id="check-dark"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item theme-option" onclick="setTheme('light')">
+                                <i class="fas fa-sun t-icon"></i>
+                                Light
+                                <i class="fas fa-check theme-check" id="check-light"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item theme-option" onclick="setTheme('system')">
+                                <i class="fas fa-circle-half-stroke t-icon"></i>
+                                System
+                                <i class="fas fa-check theme-check" id="check-system"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </li>
+
+                @* ── Logged OUT: Login + Get Started | Logged IN: Avatar ── *@
+                @if (Context.Session.GetInt32("UserId") == null)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Account/Login" style="font-size:0.84rem;">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn-accent ms-1" href="/Account/Register"
+                           style="border-radius:8px; padding:0.42rem 1.1rem; font-size:0.83rem;">
+                            <i class="fas fa-rocket" style="font-size:0.75rem;"></i> Get Started
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle user-dropdown-toggle d-flex align-items-center gap-2"
+                           href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="user-avatar-pro">
+                                <span>@(Context.Session.GetString("UserName")?[0])</span>
+                            </div>
+                            <div class="d-none d-xl-flex flex-column" style="line-height:1.2;">
+                                <span style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">
+                                    @Context.Session.GetString("UserName")
+                                </span>
+                                <span style="font-size:0.68rem;color:var(--accent-bright);font-weight:500;">Member</span>
+                            </div>
+                            <i class="fas fa-chevron-down user-chevron d-none d-xl-inline"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" style="padding:0!important;">
+
+                            <!-- Header -->
+                            <li>
+                                <div class="user-dropdown-header">
+                                    <div class="user-avatar-pro lg">
+                                        <span>@(Context.Session.GetString("UserName")?[0])</span>
+                                    </div>
+                                    <div>
+                                        <div class="user-name">@Context.Session.GetString("UserName")</div>
+                                        <div class="user-badge">
+                                            <i class="fas fa-circle" style="font-size:0.35rem;color:#22c55e;"></i>
+                                            CollabNest Member
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Menu Items -->
+                            <li>
+                                <div class="user-dropdown-body">
+                                    <a class="dropdown-item" href="/Account/Profile">
+                                        <div class="di-icon purple"><i class="fas fa-user"></i></div>
+                                        My Profile
+                                    </a>
+                                    <a class="dropdown-item" href="/Account/EditProfile">
+                                        <div class="di-icon green"><i class="fas fa-pen-to-square"></i></div>
+                                        Edit Profile
+                                    </a>
+                                    <a class="dropdown-item" href="/Dashboard">
+                                        <div class="di-icon amber"><i class="fas fa-gauge-high"></i></div>
+                                        Dashboard
+                                    </a>
+                                    <a class="dropdown-item" href="/Project/Create">
+                                        <div class="di-icon purple"><i class="fas fa-plus"></i></div>
+                                        Post Project
+                                    </a>
+                                    <div style="height:1px;background:var(--border);margin:0.3rem 0;"></div>
+                                    <a class="dropdown-item logout-item" href="/Account/Logout">
+                                        <div class="di-icon red"><i class="fas fa-arrow-right-from-bracket"></i></div>
+                                        Sign Out
+                                    </a>
+                                </div>
+                            </li>
+
+                            <!-- Footer -->
+                            <li>
+                                <div class="user-dropdown-footer">
+                                    <i class="fas fa-shield-halved me-1" style="color:var(--accent-bright);"></i>
+                                    Session secured &nbsp;·&nbsp; CollabNest
+                                </div>
+                            </li>
+
+                        </ul>
+                    </li>
+                }
+
+            </ul>
+            <!-- END right nav -->
+
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE PANELS
+════════════════════════════════════════════════════════ -->
+
+<!-- ── ABOUT ── -->
+<div class="page-panel" id="panel-about">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'about')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('about')" title="Close (Esc)"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-info-circle"></i> About Us</div>
+      <h1>We're Building the Future of <span>Student Collaboration</span></h1>
+      <p>CollabNest is a platform where developers, designers, and creators come together to build impactful projects — and grow their careers in the process.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row align-items-center mb-5 g-4">
+        <div class="col-lg-6">
+          <div class="section-label">Our Mission</div>
+          <div class="section-title">Empowering Every <span style="color:var(--accent-bright)">Developer</span> to Ship</div>
+          <div class="purple-divider"></div>
+          <p class="section-desc">We believe every great idea deserves a great team. CollabNest removes the friction of finding collaborators — so you can focus on what matters: building something incredible together.</p>
+          <p class="section-desc mt-3">Whether you're a solo founder with a vision, or a developer looking for your next meaningful project, CollabNest connects you with the right people at the right time.</p>
+        </div>
+        <div class="col-lg-6">
+          <div class="row g-3">
+            <div class="col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-users"></i></div><h5>Community First</h5><p>A growing network of passionate developers and creators.</p></div></div>
+            <div class="col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-rocket"></i></div><h5>Ship Faster</h5><p>Find collaborators quickly and go from idea to launch.</p></div></div>
+            <div class="col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-graduation-cap"></i></div><h5>Learn & Grow</h5><p>Work with skilled people and level up your expertise.</p></div></div>
+            <div class="col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-globe"></i></div><h5>Open to All</h5><p>Students, freelancers, and professionals — all welcome.</p></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mb-4">
+        <div class="section-label">Our Values</div>
+        <div class="section-title">What We Stand For</div>
+        <div class="purple-divider mx-auto"></div>
+      </div>
+      <div class="row g-3 mb-5">
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-handshake"></i></div><h5>Collaboration Over Competition</h5><p>We celebrate shared success. Great products are built by teams, not individuals.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-shield-alt"></i></div><h5>Trust & Transparency</h5><p>Honest communication and open profiles build lasting professional relationships.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-lightbulb"></i></div><h5>Innovation Always</h5><p>We constantly improve our platform based on real feedback from real builders.</p></div></div>
+      </div>
+      <div class="text-center mb-4">
+        <div class="section-label">The Team</div>
+        <div class="section-title">Meet the Builder</div>
+        <div class="purple-divider mx-auto"></div>
+      </div>
+      <div class="row justify-content-center mb-5">
+        <div class="col-md-4 col-sm-8">
+          <div class="team-card">
+            <div class="team-avatar">M</div>
+            <h5 style="font-family:'Syne',sans-serif;color:var(--text-primary);font-weight:700;font-size:1.1rem;">Malik Muhammad Ahmad</h5>
+            <p style="color:var(--accent-bright);font-size:0.85rem;margin:0.3rem 0 0.9rem;font-weight:500;">Founder & Full Stack Developer</p>
+            <p style="color:var(--text-muted);font-size:0.86rem;line-height:1.65;">Passionate about building tools that help developers collaborate, grow, and ship remarkable products.</p>
+            <a href="https://www.linkedin.com/in/malik-muhammad-ahmad-788b62338" target="_blank" class="linkedin-btn mt-3"><i class="fab fa-linkedin"></i> Connect on LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<div class="page-panel" id="panel-howitworks">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'howitworks')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('howitworks')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-map"></i> How It Works</div>
+      <h1>From Idea to <span>Launched Product</span> in 4 Steps</h1>
+      <p>CollabNest makes it effortless to find the right teammates and start building — without the usual chaos of coordination.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+          <div class="section-label">For Project Owners</div>
+          <div class="section-title">Post Your <span style="color:var(--accent-bright)">Project</span></div>
+          <div class="purple-divider"></div>
+          <div class="step-card"><div class="step-num">1</div><div><h6>Create Your Profile</h6><p>Sign up and build your developer profile — add your skills, bio, and portfolio links so others know what you bring to the table.</p></div></div>
+          <div class="step-card"><div class="step-num">2</div><div><h6>Post Your Project Idea</h6><p>Describe your project, the skills you need, the tech stack, and what collaborators can expect. Be as detailed as possible.</p></div></div>
+          <div class="step-card"><div class="step-num">3</div><div><h6>Review Applicants</h6><p>Browse profiles of interested collaborators. Check their skills, past projects, and send a message to discuss fit.</p></div></div>
+          <div class="step-card"><div class="step-num">4</div><div><h6>Build & Ship Together</h6><p>Once your team is assembled, use your favourite tools and get building. CollabNest stays out of the way — we just made the intro.</p></div></div>
+        </div>
+        <div class="col-lg-6">
+          <div class="section-label">For Collaborators</div>
+          <div class="section-title">Find Your Next <span style="color:var(--accent-bright)">Project</span></div>
+          <div class="purple-divider"></div>
+          <div class="step-card"><div class="step-num">1</div><div><h6>Browse Open Projects</h6><p>Explore projects posted by other developers. Filter by skill, tech stack, or project type to find the perfect match.</p></div></div>
+          <div class="step-card"><div class="step-num">2</div><div><h6>Apply to Collaborate</h6><p>Send a collaboration request with a short note about what you bring. Make it personal — project owners love enthusiastic applicants.</p></div></div>
+          <div class="step-card"><div class="step-num">3</div><div><h6>Get Accepted & Onboard</h6><p>Once the project owner reviews and accepts you, you'll gain access to the project details and communication channels.</p></div></div>
+          <div class="step-card"><div class="step-num">4</div><div><h6>Contribute & Level Up</h6><p>Work on real projects, add them to your portfolio, and build lasting professional relationships in the process.</p></div></div>
+        </div>
+      </div>
+      <div class="text-center mb-4">
+        <div class="section-label">Why CollabNest</div>
+        <div class="section-title">Built Different</div>
+        <div class="purple-divider mx-auto"></div>
+      </div>
+      <div class="row g-3 mb-5">
+        <div class="col-md-3 col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-bolt"></i></div><h5>Fast Matching</h5><p>Find collaborators in hours, not weeks.</p></div></div>
+        <div class="col-md-3 col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-lock"></i></div><h5>Safe & Trusted</h5><p>Verified profiles and transparent reviews.</p></div></div>
+        <div class="col-md-3 col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-dollar-sign"></i></div><h5>Always Free</h5><p>No fees to post or apply. Ever.</p></div></div>
+        <div class="col-md-3 col-6"><div class="content-card text-center"><div class="icon-wrap mx-auto"><i class="fas fa-star"></i></div><h5>Quality Projects</h5><p>Real ideas from real developers.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<div class="page-panel" id="panel-features">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'features')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('features')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-star"></i> Features</div>
+      <h1>Everything You Need to <span>Collaborate</span> Effectively</h1>
+      <p>CollabNest is packed with features designed to make finding, joining, and managing collaborative projects as seamless as possible.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row g-3 mb-5">
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-search"></i></div><h5>Smart Project Search</h5><p>Search and filter projects by skill, tech stack, category, or keyword. Find exactly what matches your expertise in seconds.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-user-circle"></i></div><h5>Rich Developer Profiles</h5><p>Showcase your skills, portfolio, bio, and social links. Your profile is your professional identity on CollabNest.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-project-diagram"></i></div><h5>Project Dashboard</h5><p>Manage all your posted projects, track collaborator applications, and update project status from one central hub.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-tags"></i></div><h5>Skill Tags</h5><p>Tag your projects with required skills. Collaborators know exactly what they're signing up for before they apply.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-bell"></i></div><h5>Application Tracking</h5><p>See who's applied to your projects, review their profiles, and manage the collaboration process cleanly.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-mobile-alt"></i></div><h5>Fully Responsive</h5><p>CollabNest works beautifully on every device — desktop, tablet, or mobile. Collaborate anywhere, anytime.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-shield-alt"></i></div><h5>Secure Authentication</h5><p>Session-based auth with encrypted passwords. Your data and privacy are always protected.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-infinity"></i></div><h5>Free Forever</h5><p>No pricing tiers, no hidden fees. Every feature is available to every user at no cost.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-code"></i></div><h5>Built with Modern Tech</h5><p>ASP.NET Core MVC, Bootstrap 5, and SQL Server — fast, reliable, and scalable by design.</p></div></div>
+      </div>
+      <div class="text-center mb-4">
+        <div class="section-label">Roadmap</div>
+        <div class="section-title">Coming <span style="color:var(--accent-bright)">Soon</span></div>
+        <div class="purple-divider mx-auto"></div>
+      </div>
+      <div class="row g-3 mb-5">
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-comments"></i></div><h5>Real-time Chat <span style="background:var(--accent-dim);color:var(--accent-bright);font-size:0.62rem;border-radius:20px;padding:2px 9px;font-weight:700;vertical-align:middle;">SOON</span></h5><p>In-app messaging between collaborators and project owners.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-chart-bar"></i></div><h5>Analytics Dashboard <span style="background:var(--accent-dim);color:var(--accent-bright);font-size:0.62rem;border-radius:20px;padding:2px 9px;font-weight:700;vertical-align:middle;">SOON</span></h5><p>Track profile views, application rates, and project engagement.</p></div></div>
+        <div class="col-md-4"><div class="content-card"><div class="icon-wrap"><i class="fas fa-trophy"></i></div><h5>Reputation System <span style="background:var(--accent-dim);color:var(--accent-bright);font-size:0.62rem;border-radius:20px;padding:2px 9px;font-weight:700;vertical-align:middle;">SOON</span></h5><p>Rate your collaboration experience. Build a reputation that opens more doors.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BLOG ── -->
+<div class="page-panel" id="panel-blog">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'blog')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('blog')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-pen-nib"></i> Blog</div>
+      <h1>Insights for <span>Builders</span> & Collaborators</h1>
+      <p>Tips, stories, and guides from the world of collaborative development.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row g-4 mb-5">
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">🤝</div><div class="blog-card-body"><span class="blog-tag">COLLABORATION</span><h5>How to Find the Perfect Collaborator for Your Project</h5><p>The secret to a great collaboration starts long before the first line of code.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>April 2026 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>5 min read</div></div></div></div>
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">🚀</div><div class="blog-card-body"><span class="blog-tag">PRODUCTIVITY</span><h5>From Idea to Deployed: A Student Developer's Playbook</h5><p>We break down the exact process used by successful student dev teams to ship in under 30 days.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>March 2026 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>8 min read</div></div></div></div>
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">💡</div><div class="blog-card-body"><span class="blog-tag">CAREER</span><h5>Why Side Projects Are Your Best Portfolio Pieces</h5><p>Hiring managers love real-world collaborative projects. Here's why CollabNest projects stand out.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>February 2026 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>6 min read</div></div></div></div>
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">🛠️</div><div class="blog-card-body"><span class="blog-tag">TECH</span><h5>Top 10 Tech Stacks for Student Collaborative Projects in 2026</h5><p>We surveyed developers across CollabNest to find out which tech stacks employers love most.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>January 2026 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>7 min read</div></div></div></div>
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">🧠</div><div class="blog-card-body"><span class="blog-tag">MINDSET</span><h5>The Art of Giving (and Receiving) Code Reviews Gracefully</h5><p>Code review is where most team dynamics break down. Here's how to make feedback a superpower.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>January 2026 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>4 min read</div></div></div></div>
+        <div class="col-md-4 d-flex"><div class="blog-card w-100"><div class="blog-card-img">📈</div><div class="blog-card-body"><span class="blog-tag">GROWTH</span><h5>Building in Public: Why Transparency Attracts Better Collaborators</h5><p>Sharing your project journey openly creates trust and draws in high-quality collaborators.</p><div class="blog-meta"><i class="fas fa-calendar me-1"></i>December 2025 &nbsp;·&nbsp; <i class="fas fa-clock me-1"></i>5 min read</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FAQ ── -->
+<div class="page-panel" id="panel-faq">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'faq')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('faq')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-question-circle"></i> FAQ</div>
+      <h1>Got <span>Questions?</span> We've Got Answers.</h1>
+      <p>Everything you need to know about CollabNest — from getting started to managing your first collaboration.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="section-label mb-2">General</div>
+          <div class="purple-divider"></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">What is CollabNest? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">CollabNest is a collaboration platform where developers, designers, and creators can post project ideas, find skilled collaborators, and build meaningful products together. It's designed specifically for students and early-career professionals who want real-world project experience.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">Is CollabNest free to use? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Yes — completely and always free. There are no premium tiers, no credits to buy, and no hidden fees. Every feature on the platform is available to every registered user at zero cost.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">Who can join CollabNest? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Anyone! Whether you're a student, a bootcamp graduate, a freelance developer, or a professional looking for interesting side projects — CollabNest is open to all skill levels and backgrounds.</div></div>
+          <div class="section-label mt-4 mb-2">Projects</div>
+          <div class="purple-divider"></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">How do I post a project? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Once you're logged in, click "Post Project" in the navbar. Fill in your project title, description, required skills, and tech stack. The more detail you provide, the better your chances of attracting the right collaborators.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">How many projects can I post? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">There's no limit. Post as many projects as you like. We encourage you to keep them up to date — mark projects as complete or closed when you've found your team.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">Can I apply to multiple projects at once? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Absolutely. Browse all open projects and apply to as many as interest you. We recommend writing a personalised note for each application — project owners appreciate the extra effort.</div></div>
+          <div class="section-label mt-4 mb-2">Account & Profile</div>
+          <div class="purple-divider"></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">How do I make my profile stand out? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Fill in every section of your profile — your bio, skills, portfolio links, and social profiles. A complete profile gets significantly more attention from project owners.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">Can I edit my profile after registering? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Yes. Head to Account → Edit Profile at any time. Keep your skills and portfolio links updated as you grow.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">How do I delete my account? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">You can request account deletion by contacting us. We'll remove all your data within 48 hours in compliance with our privacy policy.</div></div>
+          <div class="section-label mt-4 mb-2">Safety & Trust</div>
+          <div class="purple-divider"></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">How does CollabNest ensure project quality? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">We rely on transparent profiles and community standards. Projects that are vague or misleading can be reported. Our team reviews flagged projects and takes appropriate action.</div></div>
+          <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)">What if a collaborator stops contributing? <i class="fas fa-plus faq-icon"></i></button><div class="faq-answer">Project owners can remove collaborators from their project at any time. We recommend setting clear expectations and milestones at the start of every collaboration.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRIVACY POLICY ── -->
+<div class="page-panel" id="panel-privacy">
+  <div class="panel-backdrop" onclick="closePanelFromBackdrop(event, 'privacy')"></div>
+  <div class="page-panel-inner">
+    <div class="panel-topbar">
+      <span class="brand"><i class="fas fa-code-branch me-2"></i>CollabNest</span>
+      <button class="panel-close" onclick="closePanel('privacy')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="panel-hero">
+      <div class="panel-hero-badge"><i class="fas fa-shield-alt"></i> Privacy Policy</div>
+      <h1>Your Privacy is Our <span>Priority</span></h1>
+      <p>We believe in full transparency. Here's exactly what data we collect, how we use it, and how we protect it. Last updated: April 2026.</p>
+    </div>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="privacy-section"><h5><i class="fas fa-database"></i> Information We Collect</h5><p>When you register on CollabNest, we collect:</p><ul><li>Your name and email address (used for login and communication)</li><li>Profile information you voluntarily provide (bio, skills, portfolio links)</li><li>Projects you post and collaboration applications you submit</li><li>Session data (stored securely server-side, not in cookies)</li></ul></div>
+          <div class="privacy-section"><h5><i class="fas fa-cogs"></i> How We Use Your Information</h5><p>We use your data exclusively to:</p><ul><li>Provide and improve the CollabNest platform</li><li>Display your public profile to other logged-in users</li><li>Enable project posting and collaboration features</li><li>Send important platform notifications (no spam, ever)</li></ul></div>
+          <div class="privacy-section"><h5><i class="fas fa-share-alt"></i> Data Sharing</h5><p>We do <strong style="color:var(--danger);">not</strong> sell, rent, or share your personal data with third parties for marketing purposes. Your email address is never publicly visible.</p></div>
+          <div class="privacy-section"><h5><i class="fas fa-lock"></i> Data Security</h5><p>We take security seriously:</p><ul><li>Passwords are hashed using industry-standard algorithms — we never store plain-text passwords</li><li>All data is transmitted over HTTPS</li><li>Session tokens are rotated and expire automatically</li><li>Database access is restricted and regularly audited</li></ul></div>
+          <div class="privacy-section"><h5><i class="fas fa-cookie-bite"></i> Cookies</h5><p>CollabNest uses only essential session cookies required to keep you logged in. We do not use tracking cookies, advertising cookies, or third-party analytics cookies.</p></div>
+          <div class="privacy-section"><h5><i class="fas fa-user-check"></i> Your Rights</h5><p>You have the right to:</p><ul><li>Access all personal data we hold about you</li><li>Request correction of inaccurate information</li><li>Request deletion of your account and all associated data</li><li>Withdraw consent at any time by deleting your account</li></ul></div>
+          <div class="privacy-section"><h5><i class="fas fa-envelope"></i> Contact Us</h5><p>If you have any questions about this Privacy Policy, please reach out via LinkedIn. We respond to all privacy enquiries within 48 hours.</p><a href="https://www.linkedin.com/in/malik-muhammad-ahmad-788b62338" target="_blank" class="linkedin-btn mt-3 d-inline-flex"><i class="fab fa-linkedin"></i> Contact via LinkedIn</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<main>
+    @RenderBody()
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer-pro mt-5">
+    <div class="container">
+        <div class="row gy-5">
+            <div class="col-lg-4 col-md-12">
+                <div class="footer-badge"><i class="fas fa-circle" style="font-size:0.4rem;"></i> Open for Collaboration</div>
+                <div class="d-flex align-items-center mb-2 gap-2">
+                    <div style="width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent-bright));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <span class="footer-brand-name">CollabNest</span>
+                </div>
+                <p class="footer-tagline mb-1">Connect. Collaborate. Build Together.</p>
+                <p class="footer-desc mt-2">A modern platform to discover project opportunities, connect with skilled developers, and build impactful products as a team.</p>
+                <div class="footer-author mt-3 mb-2"><i class="fas fa-user-circle me-1"></i> Malik Muhammad Ahmad — Full Stack Developer</div>
+                <a href="https://www.linkedin.com/in/malik-muhammad-ahmad-788b62338" target="_blank" class="linkedin-btn mb-3"><i class="fab fa-linkedin"></i> Connect on LinkedIn</a>
+                <div class="mt-2">
+                    <a href="https://www.linkedin.com/in/malik-muhammad-ahmad-788b62338" target="_blank" class="footer-social-icon" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="/Account/Profile" class="footer-social-icon" title="Profile"><i class="fas fa-user"></i></a>
+                    <a href="/" class="footer-social-icon" title="Explore"><i class="fas fa-code-branch"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="footer-heading">Platform</div>
+                <ul class="footer-links">
+                    <li><a href="/"><i class="fas fa-home" style="font-size:0.65rem;opacity:0.5;"></i>Explore</a></li>
+                    <li><a href="/Project/Create"><i class="fas fa-plus" style="font-size:0.65rem;opacity:0.5;"></i>Post Project</a></li>
+                    <li><a href="/Dashboard"><i class="fas fa-tachometer-alt" style="font-size:0.65rem;opacity:0.5;"></i>Dashboard</a></li>
+                    <li><a href="/Account/Register"><i class="fas fa-rocket" style="font-size:0.65rem;opacity:0.5;"></i>Get Started</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4 col-6">
+                <div class="footer-heading">Company</div>
+                <ul class="footer-links">
+                    <li><a href="#" onclick="openPanel('about');return false;">About Us</a></li>
+                    <li><a href="#" onclick="openPanel('howitworks');return false;">How It Works</a></li>
+                    <li><a href="#" onclick="openPanel('features');return false;">Features</a></li>
+                    <li><a href="#" onclick="openPanel('blog');return false;">Blog</a></li>
+                    <li><a href="#" onclick="openPanel('faq');return false;">FAQ</a></li>
+                    <li><a href="#" onclick="openPanel('privacy');return false;">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-4 col-12">
+                <div class="footer-heading">Account</div>
+                <ul class="footer-links">
+                    <li><a href="/Account/Login">Login</a></li>
+                    <li><a href="/Account/Register">Create Account</a></li>
+                    <li><a href="/Account/Profile">My Profile</a></li>
+                    <li><a href="/Account/EditProfile">Edit Profile</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="footer-divider">
+
+        <div class="footer-bottom">
+            <div>&copy; 2026 <strong style="color:var(--accent-bright);">CollabNest</strong>. All rights reserved.</div>
+            <div class="footer-bottom-links">
+                <a href="#" onclick="openPanel('privacy');return false;">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Contact</a>
+            </div>
+            <div>Crafted with 🩶 by <a href="https://www.linkedin.com/in/malik-muhammad-ahmad-788b62338" target="_blank">Malik Muhammad Ahmad</a></div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+<script>
+    /* ─── Theme System ─── */
+    const root = document.documentElement;
+
+    function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    function applyTheme(theme) {
+        const resolved = theme === 'system' ? getSystemTheme() : theme;
+        root.setAttribute('data-theme', resolved);
+
+        const icons  = { dark: 'fa-moon', light: 'fa-sun', system: 'fa-circle-half-stroke' };
+        const labels = { dark: 'Dark',    light: 'Light',  system: 'Auto' };
+
+        const iconEl  = document.getElementById('themeIcon');
+        const labelEl = document.getElementById('themeLabel');
+        if (iconEl)  iconEl.className  = 'fas ' + (icons[theme]  || 'fa-moon');
+        if (labelEl) labelEl.textContent = labels[theme] || 'Dark';
+
+        ['dark', 'light', 'system'].forEach(t => {
+            const check = document.getElementById('check-' + t);
+            if (check) check.classList.toggle('visible', t === theme);
+        });
+    }
+
+    function setTheme(theme) {
+        localStorage.setItem('cn-theme', theme);
+        applyTheme(theme);
+    }
+
+    (function () {
+        const saved = localStorage.getItem('cn-theme') || 'dark';
+        applyTheme(saved);
+    })();
+
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function () {
+        if ((localStorage.getItem('cn-theme') || 'dark') === 'system') {
+            applyTheme('system');
+        }
+    });
+
+    /* ─── Panel System ─── */
+    function openPanel(name) {
+        document.querySelectorAll('.page-panel.active').forEach(p => p.classList.remove('active'));
+        const panel = document.getElementById('panel-' + name);
+        if (!panel) return;
+        panel.classList.add('active');
+        panel.scrollTop = 0;
+        document.body.style.overflow = 'hidden';
+        document.querySelectorAll('#mainNav .nav-center .nav-link').forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`#mainNav .nav-center .nav-link[onclick*="${name}"]`);
+        if (link) link.classList.add('active');
+    }
+
+    function closePanel(name) {
+        const panel = document.getElementById('panel-' + name);
+        if (!panel) return;
+        const inner    = panel.querySelector('.page-panel-inner');
+        const backdrop = panel.querySelector('.panel-backdrop');
+        if (inner)    { inner.style.transform = 'translateY(20px)'; inner.style.opacity = '0'; }
+        if (backdrop) { backdrop.style.opacity = '0'; }
+        setTimeout(() => {
+            panel.classList.remove('active');
+            if (inner)    { inner.style.transform = ''; inner.style.opacity = ''; }
+            if (backdrop) { backdrop.style.opacity = ''; }
+            document.body.style.overflow = '';
+            document.querySelectorAll('#mainNav .nav-center .nav-link').forEach(l => l.classList.remove('active'));
+        }, 300);
+    }
+
+    function closePanelFromBackdrop(event, name) {
+        if (event.target === event.currentTarget) closePanel(name);
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.page-panel.active').forEach(p => {
+                closePanel(p.id.replace('panel-', ''));
+            });
+        }
+    });
+
+    /* ─── FAQ Accordion ─── */
+    function toggleFaq(btn) {
+        const item   = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    }
+</script>
+    @{ await Html.RenderPartialAsync("_ToastAlerts"); }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

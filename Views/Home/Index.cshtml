@@ -1,0 +1,630 @@
+@model List<CollabNest.Models.Project>
+@{
+    ViewData["Title"] = "Explore Projects";
+    int? userId = Context.Session.GetInt32("UserId");
+}
+
+<style>
+    .explore-hero {
+        background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 3.5rem 0 3rem;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: var(--accent-dim);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.25);
+        border-radius: 100px;
+        padding: 5px 16px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-headline {
+        font-family: 'Syne', sans-serif;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.15;
+        margin-bottom: 1rem;
+    }
+
+    .hero-headline span { color: var(--accent-bright); }
+
+    .hero-sub {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.7;
+        margin-bottom: 1.75rem;
+        max-width: 520px;
+    }
+
+    .search-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 4px 4px 4px 1rem;
+        max-width: 480px;
+        margin-bottom: 1.75rem;
+        transition: border-color 0.2s;
+    }
+
+    .search-wrap:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(139,125,255,0.12);
+    }
+
+    .search-wrap i { color: var(--text-muted); margin-right: 8px; }
+
+    .search-wrap input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-primary);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+    }
+
+    .search-wrap input::placeholder { color: var(--text-muted); }
+
+    .search-wrap button {
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        border: none;
+        border-radius: var(--radius-sm);
+        color: #fff;
+        padding: 0.55rem 1.25rem;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .search-wrap button:hover { opacity: 0.88; }
+
+    .hero-cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .btn-hero-primary {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        color: #fff; border: none;
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.75rem;
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        box-shadow: 0 4px 20px rgba(139,125,255,0.3);
+    }
+
+    .btn-hero-primary:hover { opacity: 0.88; transform: translateY(-2px); color: #fff; }
+
+    .btn-hero-outline {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.75rem;
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; cursor: pointer;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-hero-outline:hover { background: var(--bg-elevated); border-color: var(--accent); color: var(--text-primary); }
+
+    /* ── Hero Right Panel ── */
+    .hero-right-panel { display: flex; flex-direction: column; gap: 12px; }
+
+    .hvc {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+        animation: floatCard 4s ease-in-out infinite;
+    }
+
+    @@keyframes floatCard {
+        0%, 100% { transform: translateY(0px); }
+        50%       { transform: translateY(-6px); }
+    }
+
+    .hvc-topbar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.65rem 1rem;
+        background: var(--bg-elevated);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .hvc-dots { display: flex; gap: 6px; }
+    .hvc-dot  { width: 10px; height: 10px; border-radius: 50%; }
+
+    .hvc-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.75rem; font-weight: 700;
+        color: var(--text-secondary);
+        letter-spacing: 0.3px;
+    }
+
+    .hvc-live {
+        display: flex; align-items: center; gap: 5px;
+        font-size: 0.7rem; font-weight: 700; color: #22c55e;
+    }
+
+    .live-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #22c55e;
+        animation: pulseLive 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes pulseLive {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.4; transform: scale(1.35); }
+    }
+
+    .hvc-stat-row {
+        display: flex; align-items: center;
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .hvc-stat     { flex: 1; text-align: center; }
+
+    .hvc-stat-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.35rem; font-weight: 800;
+        color: var(--accent-bright);
+        display: block; line-height: 1; margin-bottom: 2px;
+    }
+
+    .hvc-stat-lbl {
+        font-size: 0.68rem; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+    }
+
+    .hvc-stat-div { width: 1px; height: 34px; background: var(--border); flex-shrink: 0; }
+
+    .hvc-chart-lbl {
+        font-size: 0.68rem; color: var(--text-muted);
+        padding: 0.7rem 1.1rem 0.3rem;
+        font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+
+    .hvc-bars {
+        display: flex; align-items: flex-end;
+        padding: 0 1.1rem 0.7rem; gap: 5px; height: 80px;
+    }
+
+    .hvc-bar-wrap {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: flex-end; gap: 3px; height: 100%;
+    }
+
+    .hvc-bar {
+        width: 100%;
+        background: rgba(139,125,255,0.2);
+        border: 1px solid rgba(139,125,255,0.25);
+        border-radius: 3px 3px 0 0;
+        animation: growBar 0.9s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        transform: scaleY(0);
+        transform-origin: bottom;
+    }
+
+    .hvc-bar.today {
+        background: var(--accent);
+        border-color: var(--accent-bright);
+    }
+
+    @@keyframes growBar {
+        to { transform: scaleY(1); }
+    }
+
+    .hvc-bar-wrap span { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; }
+
+    .hvc-feed {
+        border-top: 1px solid var(--border);
+        padding: 0.6rem 1.1rem 0.8rem;
+        display: flex; flex-direction: column; gap: 0;
+    }
+
+    .hvc-feed-item {
+        display: flex; align-items: center; gap: 8px;
+        padding: 0.38rem 0.5rem;
+        border-radius: var(--radius-sm);
+        transition: background 0.18s;
+    }
+
+    .hvc-feed-item:hover { background: var(--bg-elevated); }
+
+    .feed-avatar {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.62rem; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+
+    .feed-text  { font-size: 0.78rem; color: var(--text-secondary); flex: 1; }
+    .feed-hl    { color: var(--accent-bright); font-weight: 700; }
+    .feed-time  { font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
+
+    .hvc-proj-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 0.6rem 1.1rem;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.18s;
+        text-decoration: none;
+    }
+
+    .hvc-proj-item:last-child { border-bottom: none; }
+    .hvc-proj-item:hover { background: var(--bg-elevated); }
+
+    .hvc-proj-bar {
+        width: 3px; height: 36px; border-radius: 2px; flex-shrink: 0;
+        background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+    }
+
+    .hvc-proj-info  { flex: 1; min-width: 0; }
+
+    .hvc-proj-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.82rem; font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .hvc-proj-meta  { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+
+    .hvc-proj-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+    .open-badge {
+        font-size: 0.67rem; padding: 2px 9px; border-radius: 100px;
+        background: var(--accent-dim); color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.25); font-weight: 700;
+    }
+
+    .req-count {
+        font-size: 0.68rem; color: var(--text-muted);
+        display: flex; align-items: center; gap: 3px;
+    }
+
+    /* Projects section */
+    .projects-section { padding: 2.5rem 0 3rem; }
+
+    .section-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 1.75rem;
+    }
+
+    .section-heading {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin: 0;
+    }
+
+    .count-badge {
+        background: var(--accent-dim); color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: 100px; padding: 5px 16px; font-size: 0.82rem; font-weight: 700;
+    }
+
+    .proj-card {
+        background: var(--bg-surface); border: 1px solid var(--border);
+        border-radius: var(--radius-lg); overflow: hidden; height: 100%;
+        display: flex; flex-direction: column;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .proj-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .proj-card-top { height: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); }
+
+    .proj-card-body { padding: 1.4rem; flex: 1; display: flex; flex-direction: column; }
+
+    .proj-card-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        margin-bottom: 0.65rem; gap: 10px;
+    }
+
+    .proj-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.97rem; font-weight: 700; color: var(--text-primary);
+        line-height: 1.35; margin: 0;
+    }
+
+    .req-count-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: var(--accent-dim); color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: 100px; padding: 3px 10px;
+        font-size: 0.72rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .proj-desc {
+        font-size: 0.84rem; color: var(--text-secondary);
+        line-height: 1.65; flex-grow: 1; margin-bottom: 0.85rem;
+    }
+
+    .skill-tag-sm {
+        display: inline-block; background: var(--bg-elevated); color: var(--text-secondary);
+        border: 1px solid var(--border); border-radius: 100px;
+        padding: 3px 11px; font-size: 0.74rem; font-weight: 600; margin: 2px;
+    }
+
+    .proj-card-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: auto; padding-top: 0.9rem; border-top: 1px solid var(--border);
+    }
+
+    .owner-row { display: flex; align-items: center; gap: 8px; }
+
+    .owner-dot {
+        width: 30px; height: 30px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.78rem; color: #fff;
+    }
+
+    .owner-name-sm { font-size: 0.81rem; color: var(--text-secondary); font-weight: 600; }
+
+    .btn-view {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: transparent; color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.3);
+        border-radius: var(--radius-sm); padding: 5px 14px;
+        font-size: 0.8rem; font-weight: 700; text-decoration: none;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-view:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent-bright); }
+
+    .empty-box {
+        text-align: center; padding: 4rem 2rem;
+        border: 1px dashed var(--border); border-radius: var(--radius-lg); color: var(--text-muted);
+    }
+
+    .empty-box i  { font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
+    .empty-box h4 { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 0.5rem; }
+    .empty-box p  { font-size: 0.87rem; margin-bottom: 1.25rem; }
+
+    @@media (max-width: 768px) {
+        .hero-headline { font-size: 1.9rem; }
+        .search-wrap   { max-width: 100%; }
+    }
+</style>
+
+<!-- HERO -->
+<section class="explore-hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <!-- LEFT: headline + search + CTA -->
+            <div class="col-lg-7">
+                <div class="hero-badge"><i class="fas fa-bolt"></i> Student Collaboration Platform</div>
+                <h1 class="hero-headline">Find Your <span>Dream Team</span> &amp; Build Together</h1>
+                <p class="hero-sub">Post your project idea, find skilled collaborators, and ship something amazing. Connect with students who have the skills you need.</p>
+
+                <form method="get" action="/" class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" value="@ViewBag.Search" placeholder="Search by skill, title, or keyword..." />
+                    <button type="submit">Search</button>
+                </form>
+
+                <div class="hero-cta-row">
+                    @if (userId == null)
+                    {
+                        <a href="/Account/Register" class="btn-hero-primary">
+                            <i class="fas fa-rocket"></i> Get Started Free
+                        </a>
+                        <a href="/Account/Login" class="btn-hero-outline">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Project/Create" class="btn-hero-primary">
+                            <i class="fas fa-plus"></i> Post a Project
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- RIGHT: Live Dashboard + Latest Projects cards -->
+            <div class="col-lg-5">
+                <div class="hero-right-panel">
+
+                    <!-- Card 1: Live Activity Dashboard -->
+                    <div class="hvc">
+                        <div class="hvc-topbar">
+                            <div class="hvc-dots">
+                                <div class="hvc-dot" style="background:#ff5f57"></div>
+                                <div class="hvc-dot" style="background:#febc2e"></div>
+                                <div class="hvc-dot" style="background:#28c840"></div>
+                            </div>
+                            <span class="hvc-title">Platform Overview</span>
+                            <div class="hvc-live"><div class="live-dot"></div>Live</div>
+                        </div>
+
+                        <div class="hvc-stat-row">
+                            <div class="hvc-stat">
+                                <span class="hvc-stat-num">@Model.Count</span>
+                                <span class="hvc-stat-lbl">Projects</span>
+                            </div>
+                            <div class="hvc-stat-div"></div>
+                            <div class="hvc-stat">
+                                <span class="hvc-stat-num" style="color:var(--success);font-size:1rem">Free</span>
+                                <span class="hvc-stat-lbl">Always</span>
+                            </div>
+                            <div class="hvc-stat-div"></div>
+                            <div class="hvc-stat">
+                                <span class="hvc-stat-num"><i class="fas fa-users" style="font-size:1.1rem"></i></span>
+                                <span class="hvc-stat-lbl">Community</span>
+                            </div>
+                        </div>
+
+                        <div class="hvc-chart-lbl">Weekly Activity</div>
+                        <div class="hvc-bars" id="hvcBars"></div>
+
+                        <div class="hvc-feed">
+                            <div class="hvc-feed-item">
+                                <div class="feed-avatar" style="background:var(--accent)">AK</div>
+                                <span class="feed-text"><span class="feed-hl">Ayesha K.</span> posted a new ML project</span>
+                                <span class="feed-time">2m ago</span>
+                            </div>
+                            <div class="hvc-feed-item">
+                                <div class="feed-avatar" style="background:#22c55e">✓</div>
+                                <span class="feed-text">Collab request <span class="feed-hl">accepted</span></span>
+                                <span class="feed-time">9m ago</span>
+                            </div>
+                            <div class="hvc-feed-item">
+                                <div class="feed-avatar" style="background:#378add">ZM</div>
+                                <span class="feed-text"><span class="feed-hl">Zara M.</span> joined the platform</span>
+                                <span class="feed-time">18m ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Latest Projects (real DB data) -->
+                    @if (Model.Any())
+                    {
+                        <div class="hvc">
+                            <div class="hvc-topbar">
+                                <span class="hvc-title">Latest Projects</span>
+                                <span style="font-size:0.68rem;color:var(--text-muted)">live from database</span>
+                            </div>
+                            @foreach (var p in Model.Take(3))
+                            {
+                                string skillLabel = !string.IsNullOrEmpty(p.RequiredSkills)
+                                    ? string.Join(" · ", p.RequiredSkills.Split(',').Take(3).Select(s => s.Trim()))
+                                    : "Open project";
+                                <a href="/Project/Details/@p.Id" class="hvc-proj-item">
+                                    <div class="hvc-proj-bar"></div>
+                                    <div class="hvc-proj-info">
+                                        <div class="hvc-proj-title">@p.Title</div>
+                                        <div class="hvc-proj-meta">@skillLabel</div>
+                                    </div>
+                                    <div class="hvc-proj-right">
+                                        <span class="open-badge">Open</span>
+                                        <span class="req-count">
+                                            <i class="fas fa-users" style="font-size:0.6rem"></i>
+                                            @p.CollabRequests.Count req
+                                        </span>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- PROJECTS GRID -->
+<section class="projects-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-heading">
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                { <span>Results for "@ViewBag.Search"</span> }
+                else
+                { <span>Latest Projects</span> }
+            </h2>
+            <span class="count-badge"><i class="fas fa-layer-group me-1"></i>@Model.Count projects</span>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-box">
+                <i class="fas fa-folder-open"></i>
+                <h4>No projects found</h4>
+                <p>Be the first to post a project and find collaborators!</p>
+                @if (userId != null)
+                {
+                    <a href="/Project/Create" class="btn-hero-primary" style="display:inline-flex">
+                        <i class="fas fa-plus"></i> Post a Project
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var p in Model)
+                {
+                    string ownerInit = (p.Owner?.Name?.Length > 0) ? p.Owner.Name[0].ToString().ToUpper() : "?";
+                    <div class="col-md-6 col-lg-4">
+                        <div class="proj-card">
+                            <div class="proj-card-top"></div>
+                            <div class="proj-card-body">
+                                <div class="proj-card-header">
+                                    <h5 class="proj-title">@p.Title</h5>
+                                    <span class="req-count-badge">
+                                        <i class="fas fa-users"></i> @p.CollabRequests.Count
+                                    </span>
+                                </div>
+                                <p class="proj-desc">
+                                    @(p.Description.Length > 120 ? p.Description[..120] + "…" : p.Description)
+                                </p>
+                                @if (!string.IsNullOrEmpty(p.RequiredSkills))
+                                {
+                                    <div class="mb-2">
+                                        @foreach (var skill in p.RequiredSkills.Split(',').Take(4))
+                                        {
+                                            <span class="skill-tag-sm">@skill.Trim()</span>
+                                        }
+                                    </div>
+                                }
+                                <div class="proj-card-footer">
+                                    <div class="owner-row">
+                                        <div class="owner-dot">@ownerInit</div>
+                                        <span class="owner-name-sm">@p.Owner?.Name</span>
+                                    </div>
+                                    <a href="/Project/Details/@p.Id" class="btn-view">
+                                        View <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<script>
+(function () {
+    var el = document.getElementById('hvcBars');
+    if (!el) return;
+    var days = ['M','T','W','T','F','S','S'];
+    var pcts = [38,55,28,68,50,72,90];
+    days.forEach(function (d, i) {
+        var wrap = document.createElement('div');
+        wrap.className = 'hvc-bar-wrap';
+        var bar = document.createElement('div');
+        bar.className = 'hvc-bar' + (i === 6 ? ' today' : '');
+        bar.style.height = pcts[i] + '%';
+        bar.style.animationDelay = (i * 0.07) + 's';
+        var lbl = document.createElement('span');
+        lbl.textContent = d;
+        wrap.appendChild(bar);
+        wrap.appendChild(lbl);
+        el.appendChild(wrap);
+    });
+})();
+</script>

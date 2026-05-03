@@ -1,0 +1,385 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var myProjects = ViewBag.MyProjects as List<CollabNest.Models.Project> ?? new();
+    var myRequests = ViewBag.MyRequests as List<CollabNest.Models.CollabRequest> ?? new();
+    int pendingCount = myProjects.Sum(p => p.CollabRequests.Where(r => r.Status == "Pending").Count());
+    int acceptedCount = myRequests.Count(r => r.Status == "Accepted");
+    string userName = Context.Session.GetString("UserName") ?? "User";
+}
+
+<style>
+    .dash-hero {
+        background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .dash-welcome {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .dash-welcome span { color: var(--accent-bright); }
+
+    .dash-sub {
+        color: var(--text-muted);
+        font-size: 0.87rem;
+        margin-top: 4px;
+    }
+
+    .btn-new-project {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        color: #fff; border: none;
+        border-radius: var(--radius-md);
+        padding: 0.7rem 1.5rem;
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+        text-decoration: none; cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        box-shadow: 0 4px 16px rgba(139,125,255,0.3);
+    }
+
+    .btn-new-project:hover { opacity: 0.88; transform: translateY(-2px); color: #fff; }
+
+    /* Stats */
+    .stat-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+    .stat-icon-wrap {
+        width: 48px; height: 48px;
+        border-radius: var(--radius-md);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+        display: block;
+    }
+
+    .stat-card-label {
+        font-size: 0.77rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-top: 3px;
+        display: block;
+    }
+
+    /* Section headers */
+    .panel-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .panel-title i { color: var(--accent-bright); font-size: 0.9rem; }
+
+    /* Project items */
+    .proj-item {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+
+    .proj-item:hover { border-color: var(--border-hover); }
+
+    .proj-item-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .proj-item-title:hover { color: var(--accent-bright); }
+
+    .proj-item-desc {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin-bottom: 0.75rem;
+    }
+
+    .req-pill {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.72rem; font-weight: 700;
+        border-radius: 100px;
+        padding: 3px 10px;
+    }
+
+    .req-pill.total { background: var(--accent-dim); color: var(--accent-bright); border: 1px solid rgba(139,125,255,0.2); }
+    .req-pill.pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+
+    .btn-manage {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: transparent;
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.3);
+        border-radius: var(--radius-sm);
+        padding: 5px 14px;
+        font-size: 0.8rem; font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .btn-manage:hover { background: var(--accent-dim); color: var(--accent-bright); }
+
+    /* Request items */
+    .req-item {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem 1.15rem;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+
+    .req-item:hover { border-color: var(--border-hover); }
+
+    .req-proj-name {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 3px;
+    }
+
+    .req-proj-owner {
+        font-size: 0.77rem;
+        color: var(--text-muted);
+        margin-bottom: 0.65rem;
+    }
+
+    .status-badge {
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.4px; text-transform: uppercase;
+        padding: 3px 10px; border-radius: 100px;
+    }
+
+    .badge-pending  { background: rgba(251,191,36,0.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .badge-accepted { background: rgba(34,197,94,0.1);   color: #22c55e; border: 1px solid rgba(34,197,94,0.2); }
+    .badge-rejected { background: rgba(244,63,94,0.1);   color: #f43f5e; border: 1px solid rgba(244,63,94,0.2); }
+
+    .btn-view-sm {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 4px 12px;
+        font-size: 0.77rem; font-weight: 600;
+        text-decoration: none;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-view-sm:hover { border-color: var(--accent); color: var(--accent-bright); }
+
+    .empty-panel {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-lg);
+    }
+
+    .empty-panel i { font-size: 2rem; color: var(--text-muted); opacity: 0.35; display: block; margin-bottom: 0.75rem; }
+    .empty-panel p { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+    .btn-empty {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--accent-dim);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: var(--radius-sm);
+        padding: 7px 18px;
+        font-size: 0.83rem; font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .btn-empty:hover { background: rgba(139,125,255,0.2); color: var(--accent-bright); }
+</style>
+
+<!-- Dashboard Hero -->
+<div class="dash-hero">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dash-welcome">Welcome, <span>@userName</span>!</h1>
+                <p class="dash-sub"><i class="fas fa-circle me-1" style="color:var(--success);font-size:0.6rem"></i>Your workspace is ready</p>
+            </div>
+            <a href="/Project/Create" class="btn-new-project">
+                <i class="fas fa-plus"></i> New Project
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon-wrap" style="background:rgba(139,125,255,0.12);">
+                    <i class="fas fa-folder" style="color:var(--accent-bright)"></i>
+                </div>
+                <div>
+                    <span class="stat-card-num">@myProjects.Count</span>
+                    <span class="stat-card-label">My Projects</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon-wrap" style="background:rgba(251,191,36,0.1);">
+                    <i class="fas fa-bell" style="color:#fbbf24"></i>
+                </div>
+                <div>
+                    <span class="stat-card-num">@pendingCount</span>
+                    <span class="stat-card-label">Pending Requests</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon-wrap" style="background:rgba(59,130,246,0.1);">
+                    <i class="fas fa-paper-plane" style="color:#60a5fa"></i>
+                </div>
+                <div>
+                    <span class="stat-card-num">@myRequests.Count</span>
+                    <span class="stat-card-label">Requests Sent</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon-wrap" style="background:rgba(34,197,94,0.1);">
+                    <i class="fas fa-check-circle" style="color:var(--success)"></i>
+                </div>
+                <div>
+                    <span class="stat-card-num">@acceptedCount</span>
+                    <span class="stat-card-label">Accepted</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row g-4">
+
+        <!-- My Projects -->
+        <div class="col-lg-7">
+            <div class="panel-title">
+                <i class="fas fa-folder-open"></i> My Projects
+            </div>
+
+            @if (!myProjects.Any())
+            {
+                <div class="empty-panel">
+                    <i class="fas fa-folder-plus"></i>
+                    <p>You haven't posted any projects yet.</p>
+                    <a href="/Project/Create" class="btn-empty">
+                        <i class="fas fa-plus"></i> Create First Project
+                    </a>
+                </div>
+            }
+            else
+            {
+                @foreach (var p in myProjects)
+                {
+                    int pPending = p.CollabRequests.Count(r => r.Status == "Pending");
+                    <div class="proj-item">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                            <a href="/Project/Details/@p.Id" class="proj-item-title">@p.Title</a>
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                @if (p.CollabRequests.Count > 0)
+                                {
+                                    <span class="req-pill total"><i class="fas fa-users"></i> @p.CollabRequests.Count</span>
+                                }
+                                @if (pPending > 0)
+                                {
+                                    <span class="req-pill pending"><i class="fas fa-clock"></i> @pPending</span>
+                                }
+                            </div>
+                        </div>
+                        <p class="proj-item-desc">
+                            @(p.Description.Length > 90 ? p.Description[..90] + "…" : p.Description)
+                        </p>
+                        <a href="/Project/Details/@p.Id" class="btn-manage">
+                            Manage <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Requests Sent -->
+        <div class="col-lg-5">
+            <div class="panel-title">
+                <i class="fas fa-paper-plane"></i> Requests I Sent
+            </div>
+
+            @if (!myRequests.Any())
+            {
+                <div class="empty-panel">
+                    <i class="fas fa-paper-plane"></i>
+                    <p>You haven't sent any requests yet. Find a project to collaborate on!</p>
+                    <a href="/" class="btn-empty">
+                        <i class="fas fa-compass"></i> Explore Projects
+                    </a>
+                </div>
+            }
+            else
+            {
+                @foreach (var r in myRequests)
+                {
+                    string badgeClass = r.Status == "Accepted" ? "badge-accepted" : r.Status == "Rejected" ? "badge-rejected" : "badge-pending";
+                    <div class="req-item">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="req-proj-name">@r.Project?.Title</div>
+                                <div class="req-proj-owner"><i class="fas fa-user me-1"></i>by @r.Project?.Owner?.Name</div>
+                            </div>
+                            <span class="status-badge @badgeClass">@r.Status</span>
+                        </div>
+                        <a href="/Project/Details/@r.ProjectId" class="btn-view-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</div>

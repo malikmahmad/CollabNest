@@ -1,0 +1,301 @@
+@model CollabNest.Models.User
+@{
+    ViewData["Title"] = Model.Name + "'s Profile";
+    int? currentUser = Context.Session.GetInt32("UserId");
+    string initial = (Model.Name?.Length > 0) ? Model.Name[0].ToString().ToUpper() : "?";
+}
+
+<style>
+    .profile-hero {
+        background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg-elevated) 60%, rgba(139,125,255,0.08) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 3rem 0 2rem;
+    }
+
+    .profile-avatar {
+        width: 88px; height: 88px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-weight: 800; font-size: 2rem; color: #fff;
+        margin: 0 auto 1.25rem;
+        box-shadow: 0 8px 28px rgba(139,125,255,0.4);
+    }
+
+    .profile-name {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+        text-align: center;
+    }
+
+    .profile-email {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        font-size: 0.87rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .profile-email i { color: var(--accent); font-size: 0.8rem; }
+
+    .profile-bio {
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.65;
+        max-width: 460px;
+        margin: 0 auto 1rem;
+    }
+
+    .profile-bio.empty { color: var(--text-muted); font-style: italic; }
+
+    .skills-row {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+        margin-bottom: 1.25rem;
+    }
+
+    .skill-chip {
+        background: var(--accent-dim);
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.2);
+        border-radius: 100px;
+        padding: 5px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .btn-edit-profile {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 0.6rem 1.4rem;
+        font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.87rem;
+        text-decoration: none;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-edit-profile:hover {
+        background: var(--bg-elevated);
+        border-color: var(--accent);
+        color: var(--accent-bright);
+    }
+
+    /* Projects section */
+    .profile-content {
+        padding: 2rem 0 3rem;
+    }
+
+    .section-label {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--accent-bright);
+        margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 7px;
+    }
+
+    .section-label i { font-size: 0.8rem; }
+
+    .profile-proj-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem 1.4rem;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .profile-proj-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+    }
+
+    .profile-proj-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .profile-proj-desc {
+        font-size: 0.83rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 0.9rem;
+    }
+
+    .btn-view-proj {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: transparent;
+        color: var(--accent-bright);
+        border: 1px solid rgba(139,125,255,0.3);
+        border-radius: var(--radius-sm);
+        padding: 5px 14px;
+        font-size: 0.8rem; font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .btn-view-proj:hover { background: var(--accent-dim); color: var(--accent-bright); }
+
+    .empty-projects {
+        text-align: center;
+        padding: 2.5rem;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-lg);
+        color: var(--text-muted);
+        font-size: 0.87rem;
+    }
+
+    .empty-projects i { font-size: 1.8rem; display: block; margin-bottom: 0.75rem; opacity: 0.3; }
+
+    .profile-stat-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-stat {
+        text-align: center;
+        padding: 0.75rem 1.25rem;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+    }
+
+    .profile-stat-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--accent-bright);
+        display: block;
+    }
+
+    .profile-stat-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-weight: 600;
+    }
+
+    .member-since {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 4px 14px;
+        margin-bottom: 1.25rem;
+    }
+</style>
+
+<!-- Profile Hero -->
+<div class="profile-hero">
+    <div class="container">
+        <div style="text-align:center;">
+            <div class="profile-avatar">@initial</div>
+
+            <h1 class="profile-name">@Model.Name</h1>
+            <div class="profile-email">
+                <i class="fas fa-envelope"></i> @Model.Email
+            </div>
+
+            <div class="member-since">
+                <i class="fas fa-calendar-alt"></i>
+                Member since @Model.CreatedAt.ToString("MMMM yyyy")
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Bio))
+            {
+                <p class="profile-bio">@Model.Bio</p>
+            }
+            else
+            {
+                <p class="profile-bio empty">No bio added yet.</p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Skills))
+            {
+                <div class="skills-row">
+                    @foreach (var s in Model.Skills.Split(','))
+                    {
+                        <span class="skill-chip">@s.Trim()</span>
+                    }
+                </div>
+            }
+
+            <div class="profile-stat-row">
+                <div class="profile-stat">
+                    <span class="profile-stat-num">@Model.Projects.Count</span>
+                    <span class="profile-stat-label">Projects</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="profile-stat-num">@Model.SentRequests.Count</span>
+                    <span class="profile-stat-label">Requests</span>
+                </div>
+            </div>
+
+            @if (currentUser == Model.Id)
+            {
+                <a href="/Account/EditProfile" class="btn-edit-profile">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Projects Section -->
+<div class="profile-content">
+    <div class="container" style="max-width:860px;">
+        <div class="section-label">
+            <i class="fas fa-folder-open"></i> Projects (@Model.Projects.Count)
+        </div>
+
+        @if (!Model.Projects.Any())
+        {
+            <div class="empty-projects">
+                <i class="fas fa-folder"></i>
+                No projects posted yet.
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var p in Model.Projects)
+                {
+                    <div class="col-md-6">
+                        <div class="profile-proj-card">
+                            <div class="profile-proj-title">@p.Title</div>
+                            <div class="profile-proj-desc">
+                                @(p.Description.Length > 90 ? p.Description[..90] + "…" : p.Description)
+                            </div>
+                            @if (!string.IsNullOrEmpty(p.RequiredSkills))
+                            {
+                                <div class="mb-2">
+                                    @foreach (var s in p.RequiredSkills.Split(',').Take(3))
+                                    {
+                                        <span style="background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border);border-radius:100px;padding:2px 10px;font-size:0.73rem;font-weight:600;margin:2px;display:inline-block;">@s.Trim()</span>
+                                    }
+                                </div>
+                            }
+                            <a href="/Project/Details/@p.Id" class="btn-view-proj">
+                                View Project <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

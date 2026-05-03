@@ -1,0 +1,277 @@
+@model CollabNest.ViewModels.CreateProjectVM
+@{ ViewData["Title"] = "Post a Project"; }
+
+<div class="container py-5">
+    <div class="form-card fade-in" style="max-width:600px">
+        <h3 class="fw-bold mb-1"><i class="fas fa-folder-plus me-2 text-primary"></i>Post a Project</h3>
+        <p class="text-muted mb-4">Share your idea and find collaborators</p>
+
+        <form asp-action="Create" method="post">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">Project Title</label>
+                <input asp-for="Title" class="form-control" id="projectTitle"
+                       placeholder="Give your project a clear title"
+                       oninput="suggestFromTitle(this.value)" autocomplete="off" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
+
+            <!-- Category Quick Pick -->
+            <div class="mb-3">
+                <label class="form-label" style="color:var(--accent-bright);font-size:0.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+                    <i class="fas fa-bolt me-1"></i> Quick Fill — Pick Project Type
+                </label>
+                <div class="d-flex flex-wrap gap-2" id="categoryBtns">
+                    <button type="button" class="quick-btn" onclick="fillTemplate('webapp')">🌐 Web App</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('mobile')">📱 Mobile App</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('ai')">🤖 AI / ML Tool</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('game')">🎮 Game</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('ecommerce')">🛒 E-Commerce</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('dashboard')">📊 Dashboard</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('api')">⚙️ API / Backend</button>
+                    <button type="button" class="quick-btn" onclick="fillTemplate('portfolio')">🎨 Portfolio</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">
+                    Description
+                    <span id="descGenLabel" style="display:none;margin-left:8px;background:var(--accent-dim);color:var(--accent-bright);font-size:0.68rem;border-radius:20px;padding:2px 10px;font-weight:700;">
+                        ✨ AI Generated
+                    </span>
+                </label>
+                <textarea asp-for="Description" class="form-control" rows="5" id="projectDesc"
+                    placeholder="Describe your project, goals, and what you're building..."></textarea>
+                <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="RequiredSkills" class="form-label">Required Skills <span class="text-muted fw-normal">(optional)</span></label>
+                <input asp-for="RequiredSkills" class="form-control" id="skillsInput"
+                       placeholder="Type a skill or click suggestions below..."
+                       autocomplete="off" oninput="filterSkills(this.value)" />
+                <div class="form-text">Separate skills with commas</div>
+
+                <!-- Skill suggestions -->
+                <div id="skillSuggestions" class="skill-suggest-wrap mt-2" style="display:none;"></div>
+
+                <!-- Popular skills -->
+                <div class="mt-2">
+                    <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Popular:</span>
+                    <div class="d-flex flex-wrap gap-1 mt-1" id="popularSkills"></div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-600">
+                    <i class="fas fa-paper-plane me-2"></i>Post Project
+                </button>
+                <a href="/" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.quick-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+.quick-btn:hover, .quick-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    transform: translateY(-1px);
+}
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(139,125,255,0.25);
+    color: var(--accent-bright);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.skill-chip:hover {
+    background: var(--accent);
+    color: #fff;
+    transform: translateY(-1px);
+}
+.skill-suggest-wrap {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+</style>
+
+<script>
+const templates = {
+    webapp: {
+        desc: "A full-stack web application that aims to solve [problem]. Users will be able to [key feature 1], [key feature 2], and [key feature 3]. The goal is to deliver a responsive, intuitive experience accessible from any browser.\n\nWe are looking for passionate developers to help bring this idea to life from design to deployment.",
+        skills: "HTML, CSS, JavaScript, React, Node.js, SQL"
+    },
+    mobile: {
+        desc: "A cross-platform mobile application targeting iOS and Android users. The app will allow users to [core functionality] with a clean, modern interface.\n\nWe need collaborators who are passionate about mobile development and creating seamless user experiences on the go.",
+        skills: "Flutter, Dart, Firebase, REST API, UI/UX"
+    },
+    ai: {
+        desc: "An AI-powered tool that uses machine learning to [solve specific problem]. The system will analyse [type of data] and provide intelligent recommendations or predictions to help users [achieve goal].\n\nLooking for developers interested in AI, data science, and building smart applications.",
+        skills: "Python, TensorFlow, Scikit-learn, FastAPI, SQL, Data Analysis"
+    },
+    game: {
+        desc: "An exciting [genre] game where players [core gameplay loop]. The game features [unique mechanic], multiple levels, and an engaging progression system.\n\nWe are looking for developers, artists, and game designers excited about bringing a creative vision to life.",
+        skills: "Unity, C#, Game Design, 2D/3D Art, UI/UX"
+    },
+    ecommerce: {
+        desc: "A modern e-commerce platform that enables sellers to list products and buyers to browse, filter, and purchase seamlessly. Features include product search, cart management, secure checkout, and order tracking.\n\nLooking for collaborators to help build a reliable and scalable shopping experience.",
+        skills: "React, Node.js, MongoDB, Stripe, REST API, UI/UX"
+    },
+    dashboard: {
+        desc: "An interactive analytics dashboard that visualises [type of data] in real-time. Users can filter, sort, and export data through an intuitive interface with charts, graphs, and summary cards.\n\nIdeal for collaborators who enjoy working with data visualisation and clean UI design.",
+        skills: "React, Chart.js, Node.js, SQL, REST API, CSS"
+    },
+    api: {
+        desc: "A robust RESTful API backend that powers [application type]. The API handles authentication, data management, and business logic with clean, documented endpoints.\n\nLooking for backend developers who care about clean code, performance, and security.",
+        skills: "ASP.NET Core, C#, SQL Server, JWT, REST API, Docker"
+    },
+    portfolio: {
+        desc: "A stunning personal portfolio website to showcase projects, skills, and achievements. Features a modern design, smooth animations, contact form, and fully responsive layout.\n\nLooking for a frontend developer or designer to collaborate and create something visually impressive.",
+        skills: "HTML, CSS, JavaScript, Figma, UI/UX, Responsive Design"
+    }
+};
+
+const allSkills = [
+    "C#","ASP.NET Core","JavaScript","TypeScript","Python","Java","PHP","Go","Rust","Swift","Kotlin",
+    "React","Vue.js","Angular","Next.js","Svelte","HTML","CSS","Tailwind CSS","Bootstrap",
+    "Node.js","Express.js","Django","Flask","FastAPI","Laravel","Spring Boot",
+    "SQL","MySQL","PostgreSQL","MongoDB","Firebase","Redis","SQLite","SQL Server",
+    "Flutter","React Native","Android","iOS","Dart","Xcode",
+    "Docker","Kubernetes","AWS","Azure","Google Cloud","CI/CD","Linux",
+    "TensorFlow","PyTorch","Scikit-learn","Machine Learning","NLP","Computer Vision",
+    "REST API","GraphQL","WebSockets","Microservices",
+    "UI/UX","Figma","Adobe XD","Responsive Design","Accessibility",
+    "Git","GitHub","Agile","Scrum","Unit Testing","Jest","Selenium"
+];
+
+const popular = ["React","Node.js","Python","C#","Flutter","UI/UX","SQL","TypeScript","Firebase","Docker"];
+
+// Render popular skills on load
+window.onload = function() {
+    const wrap = document.getElementById('popularSkills');
+    popular.forEach(s => {
+        const chip = document.createElement('span');
+        chip.className = 'skill-chip';
+        chip.textContent = s;
+        chip.onclick = () => addSkill(s);
+        wrap.appendChild(chip);
+    });
+};
+
+function fillTemplate(type) {
+    const t = templates[type];
+    if (!t) return;
+
+    const titleEl = document.getElementById('projectTitle');
+    const descEl  = document.getElementById('projectDesc');
+    const skillEl = document.getElementById('skillsInput');
+
+    if (!descEl.value || descEl.value.trim() === '') {
+        descEl.value = t.desc;
+        document.getElementById('descGenLabel').style.display = 'inline';
+    }
+    if (!skillEl.value || skillEl.value.trim() === '') {
+        skillEl.value = t.skills;
+    }
+
+    // Highlight active button
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function addSkill(skill) {
+    const input = document.getElementById('skillsInput');
+    const current = input.value.split(',').map(s => s.trim()).filter(s => s);
+    if (!current.includes(skill)) {
+        current.push(skill);
+        input.value = current.join(', ');
+    }
+}
+
+function filterSkills(val) {
+    const wrap = document.getElementById('skillSuggestions');
+    const parts = val.split(',');
+    const last  = parts[parts.length - 1].trim().toLowerCase();
+
+    if (last.length < 1) { wrap.style.display = 'none'; return; }
+
+    const matches = allSkills.filter(s =>
+        s.toLowerCase().includes(last) &&
+        !val.toLowerCase().includes(s.toLowerCase())
+    ).slice(0, 10);
+
+    if (matches.length === 0) { wrap.style.display = 'none'; return; }
+
+    wrap.innerHTML = '';
+    wrap.style.display = 'flex';
+    matches.forEach(s => {
+        const chip = document.createElement('span');
+        chip.className = 'skill-chip';
+        chip.textContent = s;
+        chip.onclick = () => {
+            const p = document.getElementById('skillsInput').value.split(',');
+            p[p.length - 1] = ' ' + s;
+            document.getElementById('skillsInput').value = p.join(',').replace(/^,\s*/, '') + ', ';
+            wrap.style.display = 'none';
+        };
+        wrap.appendChild(chip);
+    });
+}
+
+function suggestFromTitle(val) {
+    const lower = val.toLowerCase();
+    const map = {
+        'ai': 'ai', 'ml': 'ai', 'machine': 'ai', 'smart': 'ai', 'predict': 'ai',
+        'mobile': 'mobile', 'app': 'mobile', 'android': 'mobile', 'ios': 'mobile',
+        'game': 'game', 'play': 'game', 'puzzle': 'game',
+        'shop': 'ecommerce', 'store': 'ecommerce', 'ecommerce': 'ecommerce', 'sell': 'ecommerce',
+        'dashboard': 'dashboard', 'analytics': 'dashboard', 'chart': 'dashboard',
+        'api': 'api', 'backend': 'api', 'server': 'api',
+        'portfolio': 'portfolio', 'resume': 'portfolio',
+        'web': 'webapp', 'website': 'webapp', 'platform': 'webapp'
+    };
+    for (const [keyword, type] of Object.entries(map)) {
+        if (lower.includes(keyword)) {
+            document.querySelectorAll('.quick-btn').forEach(b => {
+                if (b.getAttribute('onclick')?.includes(type)) {
+                    b.style.boxShadow = '0 0 0 2px var(--accent)';
+                } else {
+                    b.style.boxShadow = '';
+                }
+            });
+            break;
+        }
+    }
+}
+
+// Hide skill suggestions on outside click
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#skillsInput') && !e.target.closest('#skillSuggestions')) {
+        document.getElementById('skillSuggestions').style.display = 'none';
+    }
+});
+</script>

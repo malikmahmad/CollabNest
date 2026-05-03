@@ -1,0 +1,195 @@
+@model CollabNest.ViewModels.ProfileVM
+@{ ViewData["Title"] = "Edit Profile"; }
+
+<div class="container py-5">
+    <div class="form-card fade-in" style="max-width:560px">
+        <h3 class="fw-bold mb-1"><i class="fas fa-edit me-2 text-primary"></i>Edit Profile</h3>
+        <p class="text-muted mb-4">Update your information</p>
+
+        <form asp-action="EditProfile" method="post">
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label">Full Name</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Bio" class="form-label">
+                    Bio <span class="text-muted fw-normal">(optional)</span>
+                </label>
+
+                <!-- Role quick pick for bio -->
+                <div class="mb-2">
+                    <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Quick Bio:</span>
+                    <div class="d-flex flex-wrap gap-1 mt-1">
+                        <button type="button" class="quick-btn" onclick="fillBio('frontend')">🎨 Frontend Dev</button>
+                        <button type="button" class="quick-btn" onclick="fillBio('backend')">⚙️ Backend Dev</button>
+                        <button type="button" class="quick-btn" onclick="fillBio('fullstack')">🚀 Full Stack</button>
+                        <button type="button" class="quick-btn" onclick="fillBio('mobile')">📱 Mobile Dev</button>
+                        <button type="button" class="quick-btn" onclick="fillBio('ai')">🤖 AI/ML Dev</button>
+                        <button type="button" class="quick-btn" onclick="fillBio('designer')">✏️ UI/UX Designer</button>
+                    </div>
+                </div>
+
+                <textarea asp-for="Bio" class="form-control" rows="3" id="bioField"
+                    placeholder="Tell others about yourself..."></textarea>
+                <span id="bioGenLabel" style="display:none;font-size:0.72rem;background:var(--accent-dim);color:var(--accent-bright);border-radius:20px;padding:2px 10px;font-weight:700;margin-top:4px;display:none;">
+                    ✨ Template Applied — Edit to personalise
+                </span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Skills" class="form-label">Skills <span class="text-muted fw-normal">(comma separated)</span></label>
+                <input asp-for="Skills" class="form-control" id="skillsInput"
+                       placeholder="Type a skill or click below..."
+                       autocomplete="off" oninput="filterSkills(this.value)" />
+                <div class="form-text">Example: C#, ASP.NET, JavaScript, SQL Server</div>
+
+                <!-- Skill suggestions dropdown -->
+                <div id="skillSuggestions" class="skill-suggest-wrap mt-2" style="display:none;"></div>
+
+                <!-- Popular skills -->
+                <div class="mt-2">
+                    <span style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;">Popular:</span>
+                    <div class="d-flex flex-wrap gap-1 mt-1" id="popularSkills"></div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-600">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+                <a href="/Account/Profile" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.quick-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+.quick-btn:hover, .quick-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent-bright);
+    transform: translateY(-1px);
+}
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent-dim);
+    border: 1px solid rgba(139,125,255,0.25);
+    color: var(--accent-bright);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.skill-chip:hover { background: var(--accent); color: #fff; transform: translateY(-1px); }
+.skill-suggest-wrap {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+</style>
+
+<script>
+const bioTemplates = {
+    frontend: "Passionate Frontend Developer with a love for building clean, responsive, and visually stunning web interfaces. I enjoy turning ideas into pixel-perfect experiences using modern technologies like React and Tailwind CSS.",
+    backend:  "Backend Developer focused on building robust, scalable, and secure server-side applications. I enjoy designing clean APIs, optimising databases, and solving complex logic challenges.",
+    fullstack:"Full Stack Developer comfortable working across the entire stack — from designing intuitive UIs to architecting reliable backends. I love collaborating on meaningful projects that solve real problems.",
+    mobile:   "Mobile Developer passionate about creating smooth, performant applications for Android and iOS. I enjoy building apps that feel native, intuitive, and delightful to use every day.",
+    ai:       "AI/ML enthusiast with a passion for building intelligent systems that learn from data. I enjoy working on projects that combine data science with real-world applications to create smart solutions.",
+    designer: "UI/UX Designer dedicated to crafting intuitive and beautiful digital experiences. I bridge the gap between design and development to ensure products are both functional and visually compelling."
+};
+
+const allSkills = [
+    "C#","ASP.NET Core","JavaScript","TypeScript","Python","Java","PHP","Go","Swift","Kotlin",
+    "React","Vue.js","Angular","Next.js","HTML","CSS","Tailwind CSS","Bootstrap",
+    "Node.js","Express.js","Django","Flask","FastAPI","Laravel","Spring Boot",
+    "SQL","MySQL","PostgreSQL","MongoDB","Firebase","Redis","SQL Server",
+    "Flutter","React Native","Android","iOS","Dart",
+    "Docker","AWS","Azure","Google Cloud","Linux",
+    "TensorFlow","PyTorch","Machine Learning","NLP","Data Analysis",
+    "REST API","GraphQL","Microservices","UI/UX","Figma","Adobe XD",
+    "Git","GitHub","Agile","Unit Testing","Jest"
+];
+
+const popular = ["C#","JavaScript","Python","React","Flutter","SQL","UI/UX","Node.js","TypeScript","Firebase"];
+
+window.onload = function() {
+    const wrap = document.getElementById('popularSkills');
+    popular.forEach(s => {
+        const chip = document.createElement('span');
+        chip.className = 'skill-chip';
+        chip.textContent = s;
+        chip.onclick = () => addSkill(s);
+        wrap.appendChild(chip);
+    });
+};
+
+function fillBio(role) {
+    const bio = bioTemplates[role];
+    if (!bio) return;
+    document.getElementById('bioField').value = bio;
+    const lbl = document.getElementById('bioGenLabel');
+    lbl.style.display = 'inline';
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function addSkill(skill) {
+    const input = document.getElementById('skillsInput');
+    const current = input.value.split(',').map(s => s.trim()).filter(s => s);
+    if (!current.includes(skill)) {
+        current.push(skill);
+        input.value = current.join(', ');
+    }
+}
+
+function filterSkills(val) {
+    const wrap = document.getElementById('skillSuggestions');
+    const parts = val.split(',');
+    const last  = parts[parts.length - 1].trim().toLowerCase();
+    if (last.length < 1) { wrap.style.display = 'none'; return; }
+    const matches = allSkills.filter(s =>
+        s.toLowerCase().includes(last) && !val.toLowerCase().includes(s.toLowerCase())
+    ).slice(0, 10);
+    if (matches.length === 0) { wrap.style.display = 'none'; return; }
+    wrap.innerHTML = '';
+    wrap.style.display = 'flex';
+    matches.forEach(s => {
+        const chip = document.createElement('span');
+        chip.className = 'skill-chip';
+        chip.textContent = s;
+        chip.onclick = () => {
+            const p = document.getElementById('skillsInput').value.split(',');
+            p[p.length - 1] = ' ' + s;
+            document.getElementById('skillsInput').value = p.join(',').replace(/^,\s*/, '') + ', ';
+            wrap.style.display = 'none';
+        };
+        wrap.appendChild(chip);
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#skillsInput') && !e.target.closest('#skillSuggestions')) {
+        document.getElementById('skillSuggestions').style.display = 'none';
+    }
+});
+</script>
